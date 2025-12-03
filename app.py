@@ -93,7 +93,7 @@ def generate_mcq_from_vocab(df: pd.DataFrame, n_questions: int = 10) -> pd.DataF
             "Answer": correct["Word"]
         })
     return pd.DataFrame(questions)
-  def generate_passage_and_questions(topic: str):
+def generate_passage_and_questions(topic: str):
     prompt = f"Make a passage and questions. Topic: {topic}"
     text = call_llm_mock(prompt)
     parts = text.split("\n\n")
@@ -188,4 +188,5 @@ with tab5:
         )
     else:
         st.info("Generate vocabulary first.")
+
 

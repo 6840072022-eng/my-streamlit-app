@@ -13,8 +13,8 @@ st.set_page_config(page_title="Reading Skill AI — TOEIC / IELTS / Arts English
 # TITLE AREA
 # -----------------------------
 st.title("📘 Practicing Reading Skill from a Passage")
-st.caption("For learners preparing for TOEIC or IELTS tests, as well as English I & II for Arts students.  
-")
+st.caption("For learners preparing for TOEIC or IELTS tests, as well as English I & II for Arts students.")
+
 
 
 # -----------------------------
@@ -144,5 +144,6 @@ if article_text:
         )
         st.subheader("🧪 แบบทดสอบจับใจความ")
         st.write(output)
+
 
 

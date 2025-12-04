@@ -3,179 +3,70 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 import google.generativeai as genai
-import io
 
 # ---------------------------
-# Function: Fetch article text
+# CONFIG
 # ---------------------------
-def fetch_article_text(url):
+st.title("📝 Article Analysis with Gemini")
+
+gemini_api = st.text_input("ใส่ Google API Key", type="password")
+url = st.text_input("ใส่ลิงก์บทความที่ต้องการวิเคราะห์")
+
+# ---------------------------
+# Function: scrape article
+# ---------------------------
+def extract_article(url):
     try:
-        resp = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
-        resp.raise_for_status()
-    except Exception as e:
-        return None, f"Error fetching URL: {e}"
+        r = requests.get(url, timeout=10)
+        soup = BeautifulSoup(r.text, "html.parser")
 
-    soup = BeautifulSoup(resp.text, "html.parser")
-
-    article_tags = soup.find_all(["article"])
-    if article_tags:
-        texts = " ".join(a.get_text(separator=" ", strip=True) for a in article_tags)
-    else:
+        # ดึง text ทุก <p>
         paragraphs = soup.find_all("p")
-        texts = " ".join(p.get_text(separator=" ", strip=True) for p in paragraphs)
+        text = "\n".join([p.get_text() for p in paragraphs])
 
-    texts = " ".join(texts.split())
-    return texts if texts.strip() else None, None
+        return text.strip()
 
-
-# ---------------------------
-# Function: Gemini call
-# ---------------------------
-def gemini_generate(api_key, model_name, prompt, max_tokens=1024):
-    genai.configure(api_key=api_key)
-
-    model = genai.GenerativeModel(model_name)
-
-    response = model.generate_content(
-        prompt,
-        generation_config={"max_output_tokens": max_tokens}
-    )
-
-    return response.text
+    except Exception as e:
+        return None
 
 
 # ---------------------------
-# Streamlit UI
+# When pressing RUN
 # ---------------------------
-st.set_page_config(layout="wide", page_title="NLP Analyzer (Gemini)")
+if st.button("วิเคราะห์บทความ"):
+    if not gemini_api:
+        st.error("❌ กรุณาใส่ API Key")
+        st.stop()
 
-st.title("NLP Analyzer with Google Gemini")
+    if not url:
+        st.error("❌ กรุณาใส่ URL")
+        st.stop()
 
-# Sidebar
-st.sidebar.header("Settings")
+    # Extract article
+    article_text = extract_article(url)
 
-api_key = st.sidebar.text_input("Google Gemini API Key", type="password")
+    if not article_text:
+        st.error("❌ ไม่พบเนื้อหาบทความ หรือไม่สามารถดึงข้อมูลได้")
+        st.stop()
 
-model_name = st.sidebar.selectbox(
-    "Model",
-    ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
-)
+    st.success("ดึงบทความสำเร็จ!")
+    st.write("**ตัวอย่างเนื้อหาที่ดึงได้:**")
+    st.write(article_text[:500] + " ...")
 
-max_tokens = st.sidebar.slider("Max output tokens", 128, 4096, 1024, 128)
+    # ---------------------------
+    # Run Gemini
+    # ---------------------------
+    genai.configure(api_key=gemini_api)
+    model = genai.GenerativeModel("gemini-1.5-flash")
 
-# Input options
-st.subheader("1) Input Source")
+    prompt = f"""
+    วิเคราะห์และสรุปบทความต่อไปนี้ให้กระชับ อ่านง่าย และเข้าใจเร็ว:
 
-input_mode = st.radio("Choose input type", ["URL", "Paste text"])
+    {article_text}
+    """
 
-article_text = ""
+    with st.spinner("กำลังวิเคราะห์ด้วย Gemini..."):
+        response = model.generate_content(prompt)
 
-if input_mode == "URL":
-    url = st.text_input("Enter article URL")
-
-    if st.button("Fetch article text"):
-        if not url.strip():
-            st.warning("Please enter a valid URL")
-        else:
-            text, err = fetch_article_text(url)
-            if err:
-                st.error(err)
-            else:
-                article_text = text
-                st.success("Fetched successfully!")
-                st.text_area("Article Preview", article_text[:2000], height=250)
-
-else:
-    article_text = st.text_area("Paste your text here", height=250)
-
-# Tasks
-st.subheader("2) Select Task")
-
-task = st.selectbox(
-    "Task type",
-    [
-        "Summarize",
-        "Vocabulary extraction",
-        "Translate to French",
-        "Create Cloze Test",
-        "Generate Slogans"
-    ]
-)
-
-# Run Button
-st.subheader("3) Run")
-
-if st.button("Run Task"):
-    if not api_key:
-        st.error("Please enter an API key in the sidebar!")
-    elif not article_text.strip():
-        st.error("No input text detected!")
-    else:
-
-        # ---- Create prompt based on task ----
-        if task == "Summarize":
-            prompt = f"""
-คุณคือระบบสรุปบทความขั้นสูง
-โปรดสรุปข้อความต่อไปนี้ให้กระชับ ชัดเจน อ่านง่าย:
-
-{article_text}
-"""
-
-        elif task == "Vocabulary extraction":
-            prompt = f"""
-คุณคือระบบดึงคำศัพท์ภาษาอังกฤษ
-โปรดดึงคำศัพท์สำคัญจากบทความด้านล่าง
-พร้อม (คำศัพท์ | ความหมายไทย | ตัวอย่างประโยค)
-
-Return as a table:
-
-{article_text}
-"""
-
-        elif task == "Translate to French":
-            prompt = f"""
-แปลข้อความภาษาไทยต่อไปนี้เป็นภาษาฝรั่งเศสแบบเป็นธรรมชาติ:
-
-{article_text}
-"""
-
-        elif task == "Create Cloze Test":
-            prompt = f"""
-สร้างแบบทดสอบ Cloze test จากบทความด้านล่าง
-ให้ 10 ข้อ แต่ละข้อมีช่องว่าง ___ และคำตอบท้ายสุด
-
-บทความ:
-
-{article_text}
-"""
-
-        elif task == "Generate Slogans":
-            prompt = f"""
-สร้างสโลแกนสินค้า 20 แบบ โดยอิงจากข้อมูลนี้:
-
-{article_text}
-
-ให้ผลลัพธ์เป็นรายการ bullet points
-"""
-
-        # ---- Call Gemini ----
-        st.info("Processing with Gemini…")
-
-        try:
-            output = gemini_generate(api_key, model_name, prompt, max_tokens=max_tokens)
-            st.success("Done!")
-
-            # Try reading as table for DataFrame output
-            if "|" in output:
-                try:
-                    df = pd.read_csv(io.StringIO(output), sep="|")
-                    st.dataframe(df)
-                    csv_bytes = df.to_csv(index=False).encode("utf-8")
-                    st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
-                except:
-                    st.text_area("Output", output, height=400)
-            else:
-                st.text_area("Output", output, height=400)
-
-        except Exception as e:
-            st.error(f"Error: {e}")
+    st.subheader("📌 สรุปบทความ")
+    st.write(response.text)

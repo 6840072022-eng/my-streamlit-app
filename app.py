@@ -10,7 +10,7 @@ import io
 # ---------------------------
 
 st.image(
-    "https://i.postimg.cc/BZw47ZhP/IMG-0521.jpg",
+    "https://i.postimg.cc/tJq9xYC3/IMG-0520.png",
     use_column_width=True
 )
 
@@ -117,7 +117,6 @@ task = st.selectbox(
     [
         "Summarize",
         "Vocabulary extraction",
-        "Translate to French",
         "Create Cloze Test",
         "Reading Comprehension Test"
     ]
@@ -165,16 +164,8 @@ Article:
         prompt = f"""
 คุณคือระบบดึงคำศัพท์ภาษาอังกฤษ
 โปรดดึงคำศัพท์สำคัญจากบทความด้านล่าง
-พร้อม (คำศัพท์ | ความหมายไทย | ตัวอย่างประโยค)
-
-Return as a table:
-
-{article_text}
-"""
-
-    elif task == "Translate to French":
-        prompt = f"""
-แปลข้อความต่อไปนี้เป็นภาษาฝรั่งเศส:
+Return as a table with 5 columns:
+Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
 
 {article_text}
 """
@@ -209,15 +200,25 @@ Return as a table:
         if "|" in output:
             try:
                 df = pd.read_csv(io.StringIO(output), sep="|")
+
+                # ลบคอลัมน์ Unnamed
+                df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+
+                # สำหรับ Vocabulary extraction ให้แสดงเฉพาะ 5 คอลัมน์
+                if task == "Vocabulary extraction":
+                    expected_cols = ['Index', 'Word', 'Meaning (TH)', 'Meaning (EN)', 'Example sentence']
+                    df = df[[c for c in expected_cols if c in df.columns]]
+
                 st.dataframe(df)
+
+                # ดาวน์โหลด CSV
                 csv_bytes = df.to_csv(index=False).encode("utf-8")
                 st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
-            except:
+
+            except Exception as e:
                 st.text_area("Output", output, height=400)
         else:
             st.text_area("Output", output, height=400)
 
     except Exception as e:
         st.error(f"Error: {e}")
-
-

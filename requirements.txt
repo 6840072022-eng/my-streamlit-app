@@ -1,11 +1,8 @@
 streamlit
 pandas
-numpy
-scikit-learn
-plotly
 beautifulsoup4
 requests
-re
-google-generativeai>=0.5.2
-openai>=1.0.0
+openai
+google-generativeai
+
 

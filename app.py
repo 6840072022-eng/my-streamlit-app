@@ -4,11 +4,15 @@ import requests
 from bs4 import BeautifulSoup
 import google.generativeai as genai
 import io
+
+# ---------------------------
+# Background (Pastel Aesthetic)
+# ---------------------------
 st.markdown(
     """
     <style>
     .stApp {
-        background-image: url("img_0520.png");
+        background-image: url("https://i.imgur.com/UvZ5JqP.jpeg");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -89,7 +93,6 @@ article_text = ""
 
 if input_mode == "URL":
     url = st.text_input("Enter article URL")
-    # ★ ลบปุ่ม Fetch ออก → auto-fetch ตอน Run
 else:
     article_text = st.text_area("Paste your text here", height=250)
     st.session_state.article_text = article_text
@@ -105,7 +108,7 @@ task = st.selectbox(
         "Vocabulary extraction",
         "Translate to French",
         "Create Cloze Test",
-        "Reading Comprehension Test"   # ★ เปลี่ยน Generate Slogans เป็น Reading Test
+        "Reading Comprehension Test"
     ]
 )
 
@@ -114,11 +117,9 @@ st.subheader("3) Run")
 
 if st.button("Run Task"):
 
-    # โหลดจาก session ถ้า textarea ว่าง
     if not article_text.strip():
         article_text = st.session_state.article_text
 
-    # ถ้า URL mode → auto-fetch
     if input_mode == "URL" and url.strip() and not article_text.strip():
         text, err = fetch_article_text(url)
         if err:
@@ -177,7 +178,7 @@ Return as a table:
 {article_text}
 """
 
-    elif task == "Reading Comprehension Test":  # ★ โจทย์อันใหม่แทน Generate Slogans
+    elif task == "Reading Comprehension Test":
         prompt = f"""
 คุณคือระบบสร้างแบบทดสอบ Reading comprehension ระดับมหาวิทยาลัย  
 จากบทความด้านล่างนี้ ให้สร้างคำถามทั้งหมด 10 ข้อ  
@@ -209,7 +210,6 @@ Answer Key: 1) A  2) C  3) B ...
         output = gemini_generate(api_key, model_name, prompt, max_tokens=max_tokens)
         st.success("Done!")
 
-        # Try reading as table for DataFrame output
         if "|" in output:
             try:
                 df = pd.read_csv(io.StringIO(output), sep="|")
@@ -223,6 +223,3 @@ Answer Key: 1) A  2) C  3) B ...
 
     except Exception as e:
         st.error(f"Error: {e}")
-
-
-

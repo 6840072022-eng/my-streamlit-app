@@ -53,7 +53,7 @@ def gemini_generate(api_key, model_name, prompt, max_tokens=1024):
 # ---------------------------
 st.set_page_config(layout="wide", page_title="NLP Analyzer (Gemini)")
 
-st.title("📖 Practice Reading Skills from the Passage 👓")
+st.title("NLP Analyzer with Google Gemini")
 
 # Sidebar
 st.sidebar.header("Settings")
@@ -68,44 +68,44 @@ model_name = st.sidebar.selectbox(
 max_tokens = st.sidebar.slider("Max output tokens", 128, 4096, 1024, 128)
 
 # Input options
-st.subheader("📚 Input source แปะแหล่งบทความที่ต้องการวิเคราะห์ ")
+st.subheader("1) Input Source")
 
-input_mode = st.radio("Choose input type ",
-                      ["URL (ลิงก์จากบทความเช่น BBC, Medium or etc.)",
-                       "Paste text (แปะข้อความที่ต้องการเลือก)"])
+input_mode = st.radio("Choose input type", ["URL", "Paste text"])
 
 article_text = ""
 
 if input_mode == "URL":
     url = st.text_input("Enter article URL")
+    # ★ ลบปุ่ม Fetch ออก → auto-fetch ตอน Run
 else:
     article_text = st.text_area("Paste your text here", height=250)
     st.session_state.article_text = article_text
 
 
 # Tasks
-st.subheader("📚 Select Task เลือกคำสั่งที่ต้องการ")
+st.subheader("2) Select Task")
 
 task = st.selectbox(
     "Task type",
     [
-        "☆彡 Summarize วิเคราะห์สรุปจากบทความ ",
-        "☆彡 Vocabulary extraction ตารางศัพท์จากบทความ",
-        "☆彡 Translate to French แปลบทความ",
-        "☆彡 Create Cloze Test แบบฝึกหัดเติมคำจากบทความ",
-        "☆彡 Reading Comprehension Test แบบฝึกหัดจับใจความ (ช้อยส์) "
+        "Summarize",
+        "Vocabulary extraction",
+        "Translate to French",
+        "Create Cloze Test",
+        "Reading Comprehension Test"   # ★ เปลี่ยน Generate Slogans เป็น Reading Test
     ]
 )
 
 # Run Button
-st.subheader("📚 Run")
+st.subheader("3) Run")
 
-if st.button("Run Task !"):
+if st.button("Run Task"):
 
+    # โหลดจาก session ถ้า textarea ว่าง
     if not article_text.strip():
         article_text = st.session_state.article_text
 
-    # Auto-fetch for URL
+    # ถ้า URL mode → auto-fetch
     if input_mode == "URL" and url.strip() and not article_text.strip():
         text, err = fetch_article_text(url)
         if err:
@@ -123,20 +123,20 @@ if st.button("Run Task !"):
         st.stop()
 
     # ---- Create prompt based on task ----
-    if task == "☆彡 Summarize วิเคราะห์สรุปจากบทความ ":
+    if task == "Summarize":
         prompt = f"""
 You are a bilingual summarizer.
 
 Please summarize the following article in TWO versions:
 
-1) **English Summary (6–8 sentences)**
-2) **Thai Summary (6–8 sentences)**
+1) **English Summary (6–8 sentences)**  
+2) **Thai Summary (6–8 sentences)**  
 
 Article:
 {article_text}
 """
 
-    elif task == "☆彡 Vocabulary extraction ตารางศัพท์จากบทความ":
+    elif task == "Vocabulary extraction":
         prompt = f"""
 คุณคือระบบดึงคำศัพท์ภาษาอังกฤษ
 โปรดดึงคำศัพท์สำคัญจากบทความด้านล่าง
@@ -147,14 +147,14 @@ Return as a table:
 {article_text}
 """
 
-    elif task == "☆彡 Translate to French แปลบทความ":
+    elif task == "Translate to French":
         prompt = f"""
-แปลข้อความต่อไปนี้เป็นภาษาฝรั่งเศสแบบเป็นธรรมชาติ:
+แปลข้อความภาษาไทยต่อไปนี้เป็นภาษาฝรั่งเศสแบบเป็นธรรมชาติ:
 
 {article_text}
 """
 
-    elif task == "☆彡 Create Cloze Test แบบฝึกหัดเติมคำจากบทความ":
+    elif task == "Create Cloze Test":
         prompt = f"""
 สร้างแบบทดสอบ Cloze test จากบทความด้านล่าง
 ให้ 10 ข้อ แต่ละข้อมีช่องว่าง ___ และคำตอบท้ายสุด
@@ -164,27 +164,28 @@ Return as a table:
 {article_text}
 """
 
-    elif task == "☆彡 Reading Comprehension Test แบบฝึกหัดจับใจความ (ช้อยส์) ":
+    elif task == "Reading Comprehension Test":  # ★ โจทย์อันใหม่แทน Generate Slogans
         prompt = f"""
 คุณคือระบบสร้างแบบทดสอบ Reading comprehension ระดับมหาวิทยาลัย  
 จากบทความด้านล่างนี้ ให้สร้างคำถามทั้งหมด 10 ข้อ  
 โดยประกอบด้วยหัวข้อต่อไปนี้อย่างน้อยอย่างละ 1 ข้อ:
 
-- Main Idea
-- Main Purpose
-- Detail
-- Inference
-- Vocabulary in Context
-- True/False
+- Main Idea  
+- Main Purpose  
+- Detail  
+- Inference  
+- Vocabulary in Context  
+- True/False  
 - Tone / Attitude (ถ้ามี)
 
 รูปแบบคำถาม:
 - Multiple Choice 4 ตัวเลือก: A, B, C, D  
-- ตัวเลือกต้อง plausible และใกล้เคียงกัน  
+- ตัวเลือกต้อง plausible และมีความใกล้เคียงกัน  
 - เฉลยอยู่ท้ายสุดแบบนี้:
 Answer Key: 1) A  2) C  3) B ...
 
 บทความ:
+
 {article_text}
 """
 
@@ -195,7 +196,7 @@ Answer Key: 1) A  2) C  3) B ...
         output = gemini_generate(api_key, model_name, prompt, max_tokens=max_tokens)
         st.success("Done!")
 
-        # Try rendering table
+        # Try reading as table for DataFrame output
         if "|" in output:
             try:
                 df = pd.read_csv(io.StringIO(output), sep="|")

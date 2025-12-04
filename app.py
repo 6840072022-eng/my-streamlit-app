@@ -14,6 +14,28 @@ st.image(
     use_column_width=True
 )
 
+st.markdown(
+    """
+    <style>
+    .stApp {
+        /* ไล่สีจากบนลงล่าง */
+        background: linear-gradient(to bottom, #FFDEE9, #B5FFFC);
+        /* หรือไล่สีเฉียง */
+        /* background: linear-gradient(135deg, #FFDEE9, #B5FFFC); */
+        height: 100vh;
+    }
+
+    /* ปรับข้อความให้อ่านง่าย */
+    .stApp .block-container {
+        color: #333333;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+st.title("พื้นหลัง Gradient สวย ๆ")
+st.write("นี่คือตัวอย่างพื้นหลังไล่สีใน Streamlit")
 
 # Initialize session state
 if "article_text" not in st.session_state:
@@ -198,6 +220,7 @@ Return as a table:
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
 

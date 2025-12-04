@@ -70,13 +70,14 @@ max_tokens = st.sidebar.slider("Max output tokens", 128, 4096, 1024, 128)
 # Input options
 st.subheader("📚 Input source แปะแหล่งบทความที่ต้องการวิเคราะห์ ")
 
-input_mode = st.radio("Choose input type ", ["URL (ลิงก์จากบทความเช่น BBC, Medium or etc.)", "Paste text (แปะข้อความที่ต้องการเลือก)"])
+input_mode = st.radio("Choose input type ",
+                      ["URL (ลิงก์จากบทความเช่น BBC, Medium or etc.)",
+                       "Paste text (แปะข้อความที่ต้องการเลือก)"])
 
 article_text = ""
 
 if input_mode == "URL":
     url = st.text_input("Enter article URL")
-    # ★ ลบปุ่ม Fetch ออก → auto-fetch ตอน Run
 else:
     article_text = st.text_area("Paste your text here", height=250)
     st.session_state.article_text = article_text
@@ -92,7 +93,7 @@ task = st.selectbox(
         "☆彡 Vocabulary extraction ตารางศัพท์จากบทความ",
         "☆彡 Translate to French แปลบทความ",
         "☆彡 Create Cloze Test แบบฝึกหัดเติมคำจากบทความ",
-        "☆彡 Reading Comprehension Test แบบฝึกหัดจับใจความ (ช้อยส์) "   # ★ เปลี่ยน Generate Slogans เป็น Reading Test
+        "☆彡 Reading Comprehension Test แบบฝึกหัดจับใจความ (ช้อยส์) "
     ]
 )
 
@@ -101,11 +102,10 @@ st.subheader("📚 Run")
 
 if st.button("Run Task !"):
 
-    # โหลดจาก session ถ้า textarea ว่าง
     if not article_text.strip():
         article_text = st.session_state.article_text
 
-    # ถ้า URL mode → auto-fetch
+    # Auto-fetch for URL
     if input_mode == "URL" and url.strip() and not article_text.strip():
         text, err = fetch_article_text(url)
         if err:
@@ -123,20 +123,20 @@ if st.button("Run Task !"):
         st.stop()
 
     # ---- Create prompt based on task ----
-    if task == "Summarize":
+    if task == "☆彡 Summarize วิเคราะห์สรุปจากบทความ ":
         prompt = f"""
 You are a bilingual summarizer.
 
 Please summarize the following article in TWO versions:
 
-1) **English Summary (6–8 sentences)**  
-2) **Thai Summary (6–8 sentences)**  
+1) **English Summary (6–8 sentences)**
+2) **Thai Summary (6–8 sentences)**
 
 Article:
 {article_text}
 """
 
-    elif task == "Vocabulary extraction":
+    elif task == "☆彡 Vocabulary extraction ตารางศัพท์จากบทความ":
         prompt = f"""
 คุณคือระบบดึงคำศัพท์ภาษาอังกฤษ
 โปรดดึงคำศัพท์สำคัญจากบทความด้านล่าง
@@ -147,14 +147,14 @@ Return as a table:
 {article_text}
 """
 
-    elif task == "Translate to French":
+    elif task == "☆彡 Translate to French แปลบทความ":
         prompt = f"""
-แปลข้อความภาษาไทยต่อไปนี้เป็นภาษาฝรั่งเศสแบบเป็นธรรมชาติ:
+แปลข้อความต่อไปนี้เป็นภาษาฝรั่งเศสแบบเป็นธรรมชาติ:
 
 {article_text}
 """
 
-    elif task == "Create Cloze Test":
+    elif task == "☆彡 Create Cloze Test แบบฝึกหัดเติมคำจากบทความ":
         prompt = f"""
 สร้างแบบทดสอบ Cloze test จากบทความด้านล่าง
 ให้ 10 ข้อ แต่ละข้อมีช่องว่าง ___ และคำตอบท้ายสุด
@@ -164,28 +164,27 @@ Return as a table:
 {article_text}
 """
 
-    elif task == "Reading Comprehension Test":  # ★ โจทย์อันใหม่แทน Generate Slogans
+    elif task == "☆彡 Reading Comprehension Test แบบฝึกหัดจับใจความ (ช้อยส์) ":
         prompt = f"""
 คุณคือระบบสร้างแบบทดสอบ Reading comprehension ระดับมหาวิทยาลัย  
 จากบทความด้านล่างนี้ ให้สร้างคำถามทั้งหมด 10 ข้อ  
 โดยประกอบด้วยหัวข้อต่อไปนี้อย่างน้อยอย่างละ 1 ข้อ:
 
-- Main Idea  
-- Main Purpose  
-- Detail  
-- Inference  
-- Vocabulary in Context  
-- True/False  
+- Main Idea
+- Main Purpose
+- Detail
+- Inference
+- Vocabulary in Context
+- True/False
 - Tone / Attitude (ถ้ามี)
 
 รูปแบบคำถาม:
 - Multiple Choice 4 ตัวเลือก: A, B, C, D  
-- ตัวเลือกต้อง plausible และมีความใกล้เคียงกัน  
+- ตัวเลือกต้อง plausible และใกล้เคียงกัน  
 - เฉลยอยู่ท้ายสุดแบบนี้:
 Answer Key: 1) A  2) C  3) B ...
 
 บทความ:
-
 {article_text}
 """
 
@@ -196,7 +195,7 @@ Answer Key: 1) A  2) C  3) B ...
         output = gemini_generate(api_key, model_name, prompt, max_tokens=max_tokens)
         st.success("Done!")
 
-        # Try reading as table for DataFrame output
+        # Try rendering table
         if "|" in output:
             try:
                 df = pd.read_csv(io.StringIO(output), sep="|")
@@ -210,5 +209,3 @@ Answer Key: 1) A  2) C  3) B ...
 
     except Exception as e:
         st.error(f"Error: {e}")
-
-

@@ -26,13 +26,27 @@ task = st.sidebar.selectbox(
 # -----------------------------
 # LLM Helper
 # -----------------------------
-def run_llm(prompt, api_key):
-    client = OpenAI(api_key=api_key)
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=prompt
-    )
-    return response.output[0].content[0].text
+def run_llm(prompt, api_key, google_api_key):
+    # ถ้ามี OpenAI key → ใช้ OpenAI
+    if api_key and len(api_key) > 5:
+        try:
+            client = openai.OpenAI(api_key=api_key)
+            response = client.responses.create(
+                model="gpt-4.1-mini",
+                input=prompt
+            )
+            return response.output_text
+        except Exception as e:
+            st.error("❌ OpenAI Error – switching to Gemini automatically")
+            st.write(e)
+            # ถ้า error → ใช้ Gemini ต่อ
+    
+    # ถ้าไม่มี OpenAI key หรือ error → ใช้ Gemini
+    genai.configure(api_key=google_api_key)
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    gemini_response = model.generate_content(prompt)
+    return gemini_response.text
+
 
 
 # -----------------------------
@@ -133,3 +147,4 @@ if st.button("Run"):
 # -----------------------------
 st.markdown("---")
 st.caption("For learners preparing for TOEIC / IELTS / Eng I & II. Built with Streamlit + OpenAI.")
+

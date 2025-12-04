@@ -8,7 +8,7 @@ st.markdown(
     """
     <style>
     .stApp {
-        background-image: url("img0520.jpg");
+        background-image: url("img_0520.png");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -222,4 +222,5 @@ Answer Key: 1) A  2) C  3) B ...
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 

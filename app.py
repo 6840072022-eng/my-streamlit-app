@@ -15,7 +15,8 @@ st.markdown(
     }
     </style>
     """,
-    unsafe
+    unsafe_allow_html=True
+)
 
 # Initialize session state
 if "article_text" not in st.session_state:
@@ -222,5 +223,6 @@ Answer Key: 1) A  2) C  3) B ...
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 

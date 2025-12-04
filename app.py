@@ -53,7 +53,7 @@ def gemini_generate(api_key, model_name, prompt, max_tokens=1024):
 # ---------------------------
 st.set_page_config(layout="wide", page_title="NLP Analyzer (Gemini)")
 
-st.title("NLP Analyzer with Google Gemini")
+st.title("📖 Practice Reading Skills from the Passage 👓")
 
 # Sidebar
 st.sidebar.header("Settings")
@@ -70,7 +70,7 @@ max_tokens = st.sidebar.slider("Max output tokens", 128, 4096, 1024, 128)
 # Input options
 st.subheader("1) Input Source")
 
-input_mode = st.radio("Choose input type", ["URL", "Paste text"])
+input_mode = st.radio("Choose input type ", ["URL (ลิงก์จากบทความเช่น BBC, Medium or etc.)", "Paste text (แปะข้อความที่ต้องการเลือก)"])
 
 article_text = ""
 
@@ -210,3 +210,4 @@ Answer Key: 1) A  2) C  3) B ...
 
     except Exception as e:
         st.error(f"Error: {e}")
+

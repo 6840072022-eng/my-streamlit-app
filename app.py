@@ -6,14 +6,13 @@ import google.generativeai as genai
 import io
 
 # ---------------------------
-# Background Image
+# Background Image / Gradient
 # ---------------------------
 
 st.image(
     "https://i.postimg.cc/tJq9xYC3/IMG-0520.png",
     use_column_width=True
 )
-
 
 st.markdown(
     """
@@ -33,9 +32,9 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
-
+# ---------------------------
 # Initialize session state
+# ---------------------------
 if "article_text" not in st.session_state:
     st.session_state.article_text = ""
 
@@ -79,9 +78,11 @@ def gemini_generate(api_key, model_name, prompt, max_tokens=1024):
 # ---------------------------
 # Streamlit UI
 # ---------------------------
-st.set_page_config(layout="wide", page_title="NLP Analyzer (Gemini)")
+st.set_page_config(layout="wide", page_title="📖 Practice Reading Skills")
 
-st.title("NLP Analyzer with Google Gemini")
+# Title & Caption
+st.title("📖 Practice Reading Skills from a Passage 👓")
+st.caption("For learners preparing for TOEIC, IELTS, or English I&II reading tests for arts students.")
 
 # Sidebar
 st.sidebar.header("Settings")
@@ -96,20 +97,20 @@ model_name = st.sidebar.selectbox(
 max_tokens = st.sidebar.slider("Max output tokens", 128, 4096, 1024, 128)
 
 # Input options
-st.subheader("1) Input Source")
+st.subheader("☀️ Input Source")
 
 input_mode = st.radio("Choose input type", ["URL", "Paste text"])
 
 article_text = ""
 
 if input_mode == "URL":
-    url = st.text_input("Enter article URL")
+    url = st.text_input("URL (ใส่ลิงก์บทความภาษาอังกฤษจากเว็บ เช่น BBC, Medium etc.)")
 else:
     article_text = st.text_area("Paste your text here", height=250)
     st.session_state.article_text = article_text
 
 # Tasks
-st.subheader("2) Select Task")
+st.subheader("🌈 Select Task")
 
 task = st.selectbox(
     "Task type",
@@ -123,7 +124,7 @@ task = st.selectbox(
 )
 
 # Run Button
-st.subheader("3) Run")
+st.subheader("⭐️ Run")
 
 if st.button("Run Task"):
 
@@ -218,11 +219,3 @@ Return as a table:
 
     except Exception as e:
         st.error(f"Error: {e}")
-
-
-
-
-
-
-
-

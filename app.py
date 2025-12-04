@@ -1,239 +1,148 @@
-# app.py
-# VERSIONS: Mock LLM — no external API required.
-# NOTE: For production with real LLM replace mock functions with API calls.
-#
-# If you deploy on Streamlit Cloud, add a requirements.txt with:
-# streamlit
-# requests
-# beautifulsoup4
-# pandas
-
 import streamlit as st
+import pandas as pd
 import requests
 import re
-import io
-import pandas as pd
-from collections import Counter
-from typing import List, Dict
+from bs4 import BeautifulSoup
 
-st.set_page_config(page_title="สรุปบทความ + คำศัพท์ + แบบทดสอบ (Mock)", layout="wide")
+from openai import OpenAI
+import google.generativeai as genai
+
+st.set_page_config(page_title="Reading Skill AI — TOEIC / IELTS / Arts English", layout="wide")
+
+# -----------------------------
+# TITLE AREA
+# -----------------------------
 st.title("📘 Practicing Reading Skill from a Passage")
-st.caption("ยกตัวอย่างเช่น บทความจาก BBC, Medium, The Guardian, National Geographic เป็นต้น")
+st.caption("For learners preparing for TOEIC or IELTS tests, as well as English I & II for Arts students.  
+")
 
 
-# -----------------------
-# Helpers: safe extraction
-# -----------------------
-def fetch_html(url: str, timeout=10) -> str:
-    try:
-        r = requests.get(url, timeout=timeout, headers={"User-Agent": "Mozilla/5.0"})
-        r.raise_for_status()
-        return r.text
-    except Exception as e:
-        return ""
+# -----------------------------
+# SIDEBAR — API SETUP
+# -----------------------------
+st.sidebar.header("🔑 API Configuration")
 
-def extract_text_from_html(html: str) -> str:
-    # Try BeautifulSoup if available, otherwise simple regex fallback
-    try:
-        from bs4 import BeautifulSoup
-        soup = BeautifulSoup(html, "html.parser")
-        # remove scripts/styles
-        for s in soup(["script", "style", "noscript"]):
-            s.extract()
-        paragraphs = soup.find_all("p")
-        text = " ".join([p.get_text(separator=" ", strip=True) for p in paragraphs])
-        text = re.sub(r"\s+", " ", text).strip()
-        return text
-    except Exception:
-        # fallback: simple regex to take text between tags
-        text = re.sub(r"<[^>]+>", " ", html)
-        text = re.sub(r"\s+", " ", text).strip()
-        return text
+api_provider = st.sidebar.radio(
+    "เลือก LLM ที่ต้องการใช้",
+    ["OpenAI", "Google Gemini"],
+)
 
-def split_into_sentences(text: str) -> List[str]:
-    # very simple sentence splitter
-    sents = re.split(r'(?<=[.!?])\s+', text.strip())
-    sents = [s.strip() for s in sents if len(s.strip()) > 10]
-    return sents
+openai_key = None
+gemini_key = None
 
-# -----------------------
-# Mock "LLM" utilities
-# -----------------------
-STOPWORDS = set([
-    "the","and","is","in","to","of","a","for","on","that","with","as","are","was","be",
-    "it","by","an","from","at","this","which","or","have","has","but","not","they","their",
-    "we","will","can","also","its","such","these","been","more","may"
-])
+if api_provider == "OpenAI":
+    openai_key = st.sidebar.text_input("ใส่ OpenAI API Key", type="password")
+elif api_provider == "Google Gemini":
+    gemini_key = st.sidebar.text_input("ใส่ Google Gemini API Key", type="password")
 
-def summarize_mock(text: str, max_sentences: int = 3) -> str:
-    sents = split_into_sentences(text)
-    if not sents:
-        return "(ไม่พบข้อความที่จะสรุป)"
-    # Simple extractive summary: pick first N sensible sentences
-    return " ".join(sents[:max_sentences])
 
-def extract_keywords_mock(text: str, top_k: int = 8) -> List[str]:
-    # crude tokenization and frequency
-    words = re.findall(r"\b[a-zA-Z']{3,}\b", text.lower())
-    words = [w for w in words if w not in STOPWORDS]
-    freq = Counter(words)
-    common = [w for w, _ in freq.most_common(top_k)]
-    return common
+# -----------------------------
+# LLM CALLERS
+# -----------------------------
+def call_openai(prompt: str):
+    client = OpenAI(api_key=openai_key)
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "system", "content": "You summarize text, extract vocabulary, and generate questions."},
+                  {"role": "user", "content": prompt}],
+        temperature=0.2,
+    )
+    return response.choices[0].message.content
 
-def make_vocab_entries(words: List[str]) -> List[Dict]:
-    # create mock meanings and example sentences
-    entries = []
-    for w in words:
-        meaning = f"Mock meaning of '{w}' (a short definition)."
-        example = f"Example sentence using {w} in context."
-        entries.append({"word": w, "meaning": meaning, "example": example})
-    return entries
 
-def generate_questions_mock(text: str, n_questions: int = 5) -> List[Dict]:
-    # generate simple comprehension questions (mock)
-    sents = split_into_sentences(text)
-    questions = []
-    # Q1: main idea
-    if sents:
-        questions.append({"q": "What is the main idea of the article?", "answer_hint": sents[0][:200]})
-    # detail questions from later sentences
-    for i in range(1, min(len(sents), n_questions)):
-        q = f"What is one detail mentioned in sentence {i+1}?"
-        questions.append({"q": q, "answer_hint": sents[i][:200]})
-    # if not enough, create vocab-in-context questions
-    keywords = extract_keywords_mock(text, top_k=5)
-    for k in keywords[:max(0, n_questions - len(questions))]:
-        questions.append({"q": f"What does '{k}' most likely mean in the article?", "answer_hint": f"Look for usage of '{k}' in the passage."})
-    return questions[:n_questions]
+def call_gemini(prompt: str):
+    genai.configure(api_key=gemini_key)
+    model = genai.GenerativeModel("gemini-pro")
+    response = model.generate_content(prompt)
+    return response.text
 
-# -----------------------
-# Session state setup
-# -----------------------
-if "article_text" not in st.session_state:
-    st.session_state.article_text = ""  # store as string
-if "summary" not in st.session_state:
-    st.session_state.summary = ""
-if "vocab_list" not in st.session_state:
-    st.session_state.vocab_list = []  # list of dicts: {word, meaning, example}
-if "questions" not in st.session_state:
-    st.session_state.questions = []  # list of dicts: {q, answer_hint}
-if "answers" not in st.session_state:
-    st.session_state.answers = []  # user answers
 
-# -----------------------
-# UI: input area
-# -----------------------
-st.sidebar.header("การตั้งค่า")
-st.sidebar.markdown("เวอร์ชันนี้เป็น *mock* — ถ้าต้องการความแม่นยำจริง ให้เชื่อม LLM API")
+def ask_llm(prompt: str):
+    if api_provider == "OpenAI":
+        if not openai_key:
+            return "⚠️ กรุณาใส่ OpenAI API Key ก่อน"
+        return call_openai(prompt)
 
-url = st.text_input("วาง URL ของบทความภาษาอังกฤษที่ต้องการสรุปที่นี่")
+    if api_provider == "Google Gemini":
+        if not gemini_key:
+            return "⚠️ กรุณาใส่ Gemini API Key ก่อน"
+        return call_gemini(prompt)
 
-col_fetch, col_clear = st.columns([1, 1])
-with col_fetch:
-    if st.button("ดึงบทความจาก URL", key="btn_fetch"):
-        if not url.strip():
-            st.error("กรุณาวาง URL ก่อนกดปุ่ม")
-        else:
-            html = fetch_html(url.strip())
-            if not html:
-                st.error("ไม่สามารถโหลดหน้าเว็บได้ ลองตรวจสอบ URL หรือเชื่อมต่ออินเทอร์เน็ต")
+
+# -----------------------------
+# ARTICLE INPUT AREA
+# -----------------------------
+st.subheader("📥 Input Article")
+
+option = st.radio("เลือกรูปแบบการนำเข้าข้อมูล", ["URL", "Upload CSV/Excel"])
+
+article_text = ""
+
+if option == "URL":
+    url = st.text_input("วาง URL ของบทความภาษาอังกฤษที่ต้องการสรุปที่นี่ (ยกตัวอย่างเช่น บทความจาก BBC, Medium, The Guardian เป็นต้น)")
+
+    if st.button("ดึงบทความจาก URL"):
+        try:
+            raw_html = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}).text
+            soup = BeautifulSoup(raw_html, "html.parser")
+            paragraphs = soup.find_all("p")
+            article_text = " ".join(p.get_text(strip=True) for p in paragraphs)
+            st.success("ดึงบทความสำเร็จ!")
+        except:
+            st.error("ไม่สามารถโหลด URL นี้ได้")
+
+elif option == "Upload CSV/Excel":
+    file = st.file_uploader("อัปโหลดไฟล์ CSV หรือ Excel", type=["csv", "xlsx"])
+    if file:
+        try:
+            if file.name.endswith(".csv"):
+                df_input = pd.read_csv(file)
             else:
-                text = extract_text_from_html(html)
-                if not text:
-                    st.error("ไม่พบเนื้อหาบทความจากหน้าเว็บนี้")
-                else:
-                    st.session_state.article_text = text
-                    st.success("ดึงบทความเรียบร้อยแล้ว")
-with col_clear:
-    if st.button("ล้างข้อมูลทั้งหมด", key="btn_clear"):
-        st.session_state.article_text = ""
-        st.session_state.summary = ""
-        st.session_state.vocab_list = []
-        st.session_state.questions = []
-        st.session_state.answers = []
-        st.success("ล้างข้อมูลแล้ว")
+                df_input = pd.read_excel(file)
+            article_text = " ".join(df_input.astype(str).stack())
+            st.success("โหลดข้อมูลสำเร็จ!")
+            st.dataframe(df_input)
+        except:
+            st.error("ไฟล์ไม่สามารถอ่านได้")
 
-st.markdown("---")
 
-# -----------------------
-# Show article (preview)
-# -----------------------
-if st.session_state.article_text:
-    st.subheader("📄 ตัวอย่างบทความ (ตัวอย่าง 1500 ตัวอักษรแรก)")
-    st.write(st.session_state.article_text[:1500] + ("..." if len(st.session_state.article_text) > 1500 else ""))
+# -----------------------------
+# PROCESSING BUTTONS
+# -----------------------------
+if article_text:
+    st.markdown("---")
 
-    col1, col2, col3 = st.columns([1,1,1])
+    col1, col2, col3 = st.columns(3)
+
     with col1:
-        if st.button("สรุปบทความ (สรุปแบบย่อ)", key="btn_summarize"):
-            st.session_state.summary = summarize_mock(st.session_state.article_text)
-            st.success("สรุปบทความเสร็จแล้ว")
+        gen_summary = st.button("📝 สรุปบทความ")
     with col2:
-        if st.button("ดึงคำศัพท์สำคัญจากบทความ", key="btn_vocab"):
-            keywords = extract_keywords_mock(st.session_state.article_text, top_k=12)
-            st.session_state.vocab_list = make_vocab_entries(keywords)
-            st.success("ดึงคำศัพท์สำคัญเรียบร้อยแล้ว")
+        gen_vocab = st.button("📚 ดึงคำศัพท์")
     with col3:
-        if st.button("สร้างแบบทดสอบจับใจความ (ภาษาอังกฤษ)", key="btn_questions"):
-            st.session_state.questions = generate_questions_mock(st.session_state.article_text, n_questions=5)
-            # reset answers
-            st.session_state.answers = [""] * len(st.session_state.questions)
-            st.success("สร้างคำถามเรียบร้อยแล้ว")
+        gen_questions = st.button("🧪 สร้างคำถามจับใจความ")
 
-# -----------------------
-# Show summary & vocab table
-# -----------------------
-if st.session_state.summary:
-    st.subheader("📝 สรุปบทความ (แบบย่อ)")
-    st.write(st.session_state.summary)
+    # OUTPUT AREA
+    st.markdown("---")
 
-if st.session_state.vocab_list:
-    st.subheader("📚 ตารางคำศัพท์สำคัญ")
-    # build dataframe temporarily from session_state list (do not store DF in session)
-    df_vocab = pd.DataFrame(st.session_state.vocab_list)
-    # show table with Thai headers
-    df_show = df_vocab.rename(columns={"word":"คำศัพท์","meaning":"ความหมาย","example":"ประโยคตัวอย่าง"})
-    st.dataframe(df_show)
-    # download CSV
-    csv_buf = df_vocab.to_csv(index=False)
-    st.download_button("ดาวน์โหลดตารางคำศัพท์ (CSV)", csv_buf, file_name="vocabulary.csv")
+    if gen_summary:
+        output = ask_llm(f"Summarize this article:\n\n{article_text}")
+        st.subheader("📝 สรุปบทความ")
+        st.write(output)
 
-# -----------------------
-# Quiz / Test UI
-# -----------------------
-if st.session_state.questions:
-    st.subheader("🧪 แบบทดสอบจับใจความ (ตอบเป็นภาษาอังกฤษ)")
-    st.write("ตอบคำถามด้านล่างเป็นภาษาอังกฤษ แล้วกด 'ตรวจคำตอบ' เพื่อให้ระบบให้คะแนนแบบคร่าว ๆ (mock grading)")
-    form = st.form(key="quiz_form")
-    user_answers = []
-    for i, q in enumerate(st.session_state.questions):
-        form.write(f"**Q{i+1}. {q['q']}**")
-        # prefill with existing if any
-        existing = st.session_state.answers[i] if i < len(st.session_state.answers) else ""
-        ans = form.text_area(f"Your answer for Q{i+1}", value=existing, key=f"ans_{i}")
-        user_answers.append(ans)
-        form.markdown("---")
-    submitted = form.form_submit_button("ส่งคำตอบและตรวจคำตอบ")
-    if submitted:
-        # save answers
-        st.session_state.answers = user_answers
-        # grading (very simple mock): check overlap of important words from hint
-        scores = []
-        for ans, q in zip(user_answers, st.session_state.questions):
-            hint_words = set(re.findall(r"\b[a-zA-Z']{4,}\b", q.get("answer_hint","").lower()))
-            ans_words = set(re.findall(r"\b[a-zA-Z']{4,}\b", ans.lower()))
-            if not hint_words:
-                score = 1 if len(ans.strip())>10 else 0
-            else:
-                overlap = len(hint_words & ans_words)
-                score = 1 if overlap >= max(1, len(hint_words)//4) else 0
-            scores.append(score)
-        total = sum(scores)
-        st.success(f"คุณได้ {total} จาก {len(scores)} คะแนน (ระบบให้คะแนนแบบคร่าว ๆ)")
-        # show per-question feedback
-        for i, s in enumerate(scores):
-            st.write(f"Q{i+1}: {'ถูกต้อง (ตามเงื่อนไขของระบบ)' if s>0 else 'ยังไม่ผ่าน - ลองตอบใหม่'}")
-            st.caption(f"อ้างอิง hint: {st.session_state.questions[i]['answer_hint'][:200]}")
+    if gen_vocab:
+        output = ask_llm(
+            f"Extract important English vocabulary from this article. "
+            f"Return JSON list with fields: word, meaning, example."
+            f"\n\nArticle:\n{article_text}"
+        )
+        st.subheader("📚 คำศัพท์สำคัญ")
+        st.write(output)
 
-st.markdown("---")
-st.caption("เวอร์ชัน Mock — หากต้องการให้สรุป/ดึงคำศัพท์/สร้างข้อสอบแม่นยำขึ้น ให้บอกฉันจะผนวก LLM API ให้ (OpenAI / Google Gemini ฯลฯ).")
+    if gen_questions:
+        output = ask_llm(
+            f"Generate 5 English reading comprehension questions from this passage:\n{article_text}"
+        )
+        st.subheader("🧪 แบบทดสอบจับใจความ")
+        st.write(output)
+
 

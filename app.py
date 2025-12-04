@@ -4,6 +4,18 @@ import requests
 from bs4 import BeautifulSoup
 import google.generativeai as genai
 import io
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-image: url("img0520.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+    </style>
+    """,
+    unsafe
 
 # Initialize session state
 if "article_text" not in st.session_state:
@@ -210,3 +222,4 @@ Answer Key: 1) A  2) C  3) B ...
 
     except Exception as e:
         st.error(f"Error: {e}")
+

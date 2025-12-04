@@ -6,13 +6,13 @@ import google.generativeai as genai
 import io
 
 # ---------------------------
-# Background (Pastel Aesthetic)
+# Background Image
 # ---------------------------
 st.markdown(
     """
     <style>
     .stApp {
-        background-image: url("https://i.imgur.com/UvZ5JqP.jpeg");
+        background-image: url("https://i.postimg.cc/MMLkkZBH/img.png");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -48,7 +48,6 @@ def fetch_article_text(url):
     texts = " ".join(texts.split())
     return texts if texts.strip() else None, None
 
-
 # ---------------------------
 # Function: Gemini call
 # ---------------------------
@@ -63,7 +62,6 @@ def gemini_generate(api_key, model_name, prompt, max_tokens=1024):
     )
 
     return response.text
-
 
 # ---------------------------
 # Streamlit UI
@@ -96,7 +94,6 @@ if input_mode == "URL":
 else:
     article_text = st.text_area("Paste your text here", height=250)
     st.session_state.article_text = article_text
-
 
 # Tasks
 st.subheader("2) Select Task")
@@ -136,15 +133,15 @@ if st.button("Run Task"):
         st.error("No input text detected!")
         st.stop()
 
-    # ---- Create prompt based on task ----
+    # ---- Create prompt ----
     if task == "Summarize":
         prompt = f"""
 You are a bilingual summarizer.
 
 Please summarize the following article in TWO versions:
 
-1) **English Summary (6–8 sentences)**  
-2) **Thai Summary (6–8 sentences)**  
+1) English Summary (6–8 sentences)
+2) Thai Summary (6–8 sentences)
 
 Article:
 {article_text}
@@ -163,7 +160,7 @@ Return as a table:
 
     elif task == "Translate to French":
         prompt = f"""
-แปลข้อความภาษาไทยต่อไปนี้เป็นภาษาฝรั่งเศสแบบเป็นธรรมชาติ:
+แปลข้อความต่อไปนี้เป็นภาษาฝรั่งเศส:
 
 {article_text}
 """
@@ -171,39 +168,24 @@ Return as a table:
     elif task == "Create Cloze Test":
         prompt = f"""
 สร้างแบบทดสอบ Cloze test จากบทความด้านล่าง
-ให้ 10 ข้อ แต่ละข้อมีช่องว่าง ___ และคำตอบท้ายสุด
-
-บทความ:
+ให้ 10 ข้อ มีช่องว่าง ___ และเฉลยท้ายสุด
 
 {article_text}
 """
 
     elif task == "Reading Comprehension Test":
         prompt = f"""
-คุณคือระบบสร้างแบบทดสอบ Reading comprehension ระดับมหาวิทยาลัย  
-จากบทความด้านล่างนี้ ให้สร้างคำถามทั้งหมด 10 ข้อ  
-โดยประกอบด้วยหัวข้อต่อไปนี้อย่างน้อยอย่างละ 1 ข้อ:
-
-- Main Idea  
-- Main Purpose  
-- Detail  
-- Inference  
-- Vocabulary in Context  
-- True/False  
-- Tone / Attitude (ถ้ามี)
-
-รูปแบบคำถาม:
-- Multiple Choice 4 ตัวเลือก: A, B, C, D  
-- ตัวเลือกต้อง plausible และมีความใกล้เคียงกัน  
-- เฉลยอยู่ท้ายสุดแบบนี้:
-Answer Key: 1) A  2) C  3) B ...
+สร้างแบบทดสอบ Reading comprehension จำนวน 10 ข้อ
+ครอบคลุมหัวข้อ Main Idea, Purpose, Detail, Inference, Vocabulary, T/F, Tone
+เป็น Multiple Choice 4 ตัวเลือก A-D
+เฉลยท้ายสุดแบบนี้: 1) A 2) C 3) B ...
 
 บทความ:
 
 {article_text}
 """
 
-    # ---- Call Gemini ----
+    # ---- Run Gemini ----
     st.info("Processing with Gemini…")
 
     try:

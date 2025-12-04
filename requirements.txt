@@ -3,4 +3,4 @@ pandas
 beautifulsoup4
 requests
 openai
-google-generativeai
+google-genai

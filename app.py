@@ -12,7 +12,7 @@ st.markdown(
     """
     <style>
     .stApp {
-        background-image: url("https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1920&q=80");
+        background-image: url("https://unsplash.com/illustrations/a-cup-of-coffee-and-a-book-on-a-table-RpSTMkZGKyE");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -205,4 +205,5 @@ Return as a table:
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 

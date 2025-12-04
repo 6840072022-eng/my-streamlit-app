@@ -1,7 +1,7 @@
-
 import streamlit as st
 import pandas as pd
 from openai import OpenAI
+import google.generativeai as genai
 
 # -----------------------------
 # Streamlit UI
@@ -13,6 +13,7 @@ st.title("📘 English Learning Assistant (TOEIC / IELTS / Eng I & II)")
 # Sidebar for API key
 st.sidebar.header("🔑 API Settings")
 api_key = st.sidebar.text_input("Enter your OpenAI API key:", type="password")
+google_api_key = st.sidebar.text_input("Enter your Google Gemini API key:", type="password")
 
 task = st.sidebar.selectbox(
     "Select Task",
@@ -27,10 +28,10 @@ task = st.sidebar.selectbox(
 # LLM Helper
 # -----------------------------
 def run_llm(prompt, api_key, google_api_key):
-    # ถ้ามี OpenAI key → ใช้ OpenAI
+    # 1) ใช้ OpenAI ก่อน ถ้ามี key
     if api_key and len(api_key) > 5:
         try:
-            client = openai.OpenAI(api_key=api_key)
+            client = OpenAI(api_key=api_key)
             response = client.responses.create(
                 model="gpt-4.1-mini",
                 input=prompt
@@ -38,15 +39,15 @@ def run_llm(prompt, api_key, google_api_key):
             return response.output_text
         except Exception as e:
             st.error("❌ OpenAI Error – switching to Gemini automatically")
-            st.write(e)
-            # ถ้า error → ใช้ Gemini ต่อ
-    
-    # ถ้าไม่มี OpenAI key หรือ error → ใช้ Gemini
+
+    # 2) ถ้าไม่มี key หรือ OpenAI error → ใช้ Gemini
+    if not google_api_key:
+        return "❌ No Gemini API key provided."
+
     genai.configure(api_key=google_api_key)
     model = genai.GenerativeModel("gemini-1.5-flash")
     gemini_response = model.generate_content(prompt)
     return gemini_response.text
-
 
 
 # -----------------------------
@@ -84,9 +85,10 @@ if uploaded_file:
 # Process Button
 # -----------------------------
 if st.button("Run"):
-    
-    if not api_key:
-        st.error("❌ Please enter your API key in the sidebar.")
+
+    # ถ้าไม่มี OpenAI key → ก็รันด้วย Gemini ได้ (ตามโจทย์)
+    if not api_key and not google_api_key:
+        st.error("❌ Please enter at least one API key (OpenAI or Gemini).")
         st.stop()
 
     # Case 1 — Text input
@@ -95,7 +97,6 @@ if st.button("Run"):
 
     # Case 2 — File upload
     elif df_input is not None:
-        # Convert entire dataframe into text
         final_input = df_input.to_string()
 
     else:
@@ -122,12 +123,12 @@ if st.button("Run"):
 
     # Run LLM
     with st.spinner("Generating results..."):
-        llm_output = run_llm(prompt, api_key)
+        llm_output = run_llm(prompt, api_key, google_api_key)
 
     st.subheader("📘 Output")
     st.write(llm_output)
 
-    # Try converting to dataframe
+    # Try converting text → DataFrame
     try:
         df = pd.read_csv(pd.compat.StringIO(llm_output))
         st.dataframe(df)
@@ -139,12 +140,11 @@ if st.button("Run"):
             mime="text/csv",
         )
     except:
-        st.info("ℹ The result is text (not a table), shown above.")
+        st.info("ℹ The result is text (not a table).")
 
 
 # -----------------------------
 # Footer
 # -----------------------------
 st.markdown("---")
-st.caption("For learners preparing for TOEIC / IELTS / Eng I & II. Built with Streamlit + OpenAI.")
-
+st.caption("For TOEIC / IELTS / Eng I & II. Built with Streamlit + OpenAI + Google Gemini.")

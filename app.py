@@ -76,8 +76,7 @@ article_text = ""
 
 if input_mode == "URL":
     url = st.text_input("Enter article URL")
-
-    # ★ ลบปุ่ม Fetch ออก → ไม่ต้อง fetch ด้วยตัวเองแล้ว
+    # ★ ลบปุ่ม Fetch ออก → auto-fetch ตอน Run
 else:
     article_text = st.text_area("Paste your text here", height=250)
     st.session_state.article_text = article_text
@@ -93,7 +92,7 @@ task = st.selectbox(
         "Vocabulary extraction",
         "Translate to French",
         "Create Cloze Test",
-        "Generate Slogans"
+        "Reading Comprehension Test"   # ★ เปลี่ยน Generate Slogans เป็น Reading Test
     ]
 )
 
@@ -165,13 +164,29 @@ Return as a table:
 {article_text}
 """
 
-    elif task == "Generate Slogans":
+    elif task == "Reading Comprehension Test":  # ★ โจทย์อันใหม่แทน Generate Slogans
         prompt = f"""
-สร้างสโลแกนสินค้า 20 แบบ โดยอิงจากข้อมูลนี้:
+คุณคือระบบสร้างแบบทดสอบ Reading comprehension ระดับมหาวิทยาลัย  
+จากบทความด้านล่างนี้ ให้สร้างคำถามทั้งหมด 10 ข้อ  
+โดยประกอบด้วยหัวข้อต่อไปนี้อย่างน้อยอย่างละ 1 ข้อ:
+
+- Main Idea  
+- Main Purpose  
+- Detail  
+- Inference  
+- Vocabulary in Context  
+- True/False  
+- Tone / Attitude (ถ้ามี)
+
+รูปแบบคำถาม:
+- Multiple Choice 4 ตัวเลือก: A, B, C, D  
+- ตัวเลือกต้อง plausible และมีความใกล้เคียงกัน  
+- เฉลยอยู่ท้ายสุดแบบนี้:
+Answer Key: 1) A  2) C  3) B ...
+
+บทความ:
 
 {article_text}
-
-ให้ผลลัพธ์เป็นรายการ bullet points
 """
 
     # ---- Call Gemini ----

@@ -4,5 +4,8 @@ beautifulsoup4
 requests
 openai
 google-generativeai
-
+json
+time
+base64
+urlparse
 

@@ -77,22 +77,10 @@ article_text = ""
 if input_mode == "URL":
     url = st.text_input("Enter article URL")
 
-    if st.button("Fetch article text"):
-        if not url.strip():
-            st.warning("Please enter a valid URL")
-        else:
-            text, err = fetch_article_text(url)
-            if err:
-                st.error(err)
-            else:
-                article_text = text
-                st.session_state.article_text = text      # <-- ⭐ FIX #1
-                st.success("Fetched successfully!")
-                st.text_area("Article Preview", article_text[:2000], height=250)
-
+    # ★ ลบปุ่ม Fetch ออก → ไม่ต้อง fetch ด้วยตัวเองแล้ว
 else:
     article_text = st.text_area("Paste your text here", height=250)
-    st.session_state.article_text = article_text          # <-- ⭐ FIX #2
+    st.session_state.article_text = article_text
 
 
 # Tasks
@@ -114,41 +102,43 @@ st.subheader("3) Run")
 
 if st.button("Run Task"):
 
-    # ⭐ FIX #3 โหลดค่าจาก session state ถ้า article_text ว่าง
+    # โหลดจาก session ถ้า textarea ว่าง
     if not article_text.strip():
         article_text = st.session_state.article_text
 
-    # ⭐ FIX #4 กัน None
-    article_text = article_text or ""
+    # ถ้า URL mode → auto-fetch
+    if input_mode == "URL" and url.strip() and not article_text.strip():
+        text, err = fetch_article_text(url)
+        if err:
+            st.error(err)
+            st.stop()
+        article_text = text
+        st.session_state.article_text = text
 
     if not api_key:
         st.error("Please enter an API key in the sidebar!")
-    elif not article_text.strip():
-    
-    # ⭐ ถ้า input เป็น URL → auto-fetch ให้เลย ไม่ต้องกดปุ่ม Fetch
-        if input_mode == "URL" and url.strip():
-            text, err = fetch_article_text(url)
-            if err:
-                st.error(err)
-                st.stop()
-            st.session_state.article_text = text
-            article_text = text
-        else:
-            st.error("No input text detected!")
-            st.stop()
-    else:
+        st.stop()
 
-        # ---- Create prompt based on task ----
-        if task == "Summarize":
-            prompt = f"""
-คุณคือระบบสรุปบทความขั้นสูง
-โปรดสรุปข้อความต่อไปนี้ให้กระชับ ชัดเจน อ่านง่าย:
+    if not article_text.strip():
+        st.error("No input text detected!")
+        st.stop()
 
+    # ---- Create prompt based on task ----
+    if task == "Summarize":
+        prompt = f"""
+You are a bilingual summarizer.
+
+Please summarize the following article in TWO versions:
+
+1) **English Summary (6–8 sentences)**  
+2) **Thai Summary (6–8 sentences)**  
+
+Article:
 {article_text}
 """
 
-        elif task == "Vocabulary extraction":
-            prompt = f"""
+    elif task == "Vocabulary extraction":
+        prompt = f"""
 คุณคือระบบดึงคำศัพท์ภาษาอังกฤษ
 โปรดดึงคำศัพท์สำคัญจากบทความด้านล่าง
 พร้อม (คำศัพท์ | ความหมายไทย | ตัวอย่างประโยค)
@@ -158,15 +148,15 @@ Return as a table:
 {article_text}
 """
 
-        elif task == "Translate to French":
-            prompt = f"""
+    elif task == "Translate to French":
+        prompt = f"""
 แปลข้อความภาษาไทยต่อไปนี้เป็นภาษาฝรั่งเศสแบบเป็นธรรมชาติ:
 
 {article_text}
 """
 
-        elif task == "Create Cloze Test":
-            prompt = f"""
+    elif task == "Create Cloze Test":
+        prompt = f"""
 สร้างแบบทดสอบ Cloze test จากบทความด้านล่าง
 ให้ 10 ข้อ แต่ละข้อมีช่องว่าง ___ และคำตอบท้ายสุด
 
@@ -175,8 +165,8 @@ Return as a table:
 {article_text}
 """
 
-        elif task == "Generate Slogans":
-            prompt = f"""
+    elif task == "Generate Slogans":
+        prompt = f"""
 สร้างสโลแกนสินค้า 20 แบบ โดยอิงจากข้อมูลนี้:
 
 {article_text}
@@ -184,25 +174,24 @@ Return as a table:
 ให้ผลลัพธ์เป็นรายการ bullet points
 """
 
-        # ---- Call Gemini ----
-        st.info("Processing with Gemini…")
+    # ---- Call Gemini ----
+    st.info("Processing with Gemini…")
 
-        try:
-            output = gemini_generate(api_key, model_name, prompt, max_tokens=max_tokens)
-            st.success("Done!")
+    try:
+        output = gemini_generate(api_key, model_name, prompt, max_tokens=max_tokens)
+        st.success("Done!")
 
-            # Try reading as table for DataFrame output
-            if "|" in output:
-                try:
-                    df = pd.read_csv(io.StringIO(output), sep="|")
-                    st.dataframe(df)
-                    csv_bytes = df.to_csv(index=False).encode("utf-8")
-                    st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
-                except:
-                    st.text_area("Output", output, height=400)
-            else:
+        # Try reading as table for DataFrame output
+        if "|" in output:
+            try:
+                df = pd.read_csv(io.StringIO(output), sep="|")
+                st.dataframe(df)
+                csv_bytes = df.to_csv(index=False).encode("utf-8")
+                st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
+            except:
                 st.text_area("Output", output, height=400)
+        else:
+            st.text_area("Output", output, height=400)
 
-        except Exception as e:
-            st.error(f"Error: {e}")
-
+    except Exception as e:
+        st.error(f"Error: {e}")

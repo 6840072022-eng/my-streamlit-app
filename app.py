@@ -68,7 +68,7 @@ model_name = st.sidebar.selectbox(
 max_tokens = st.sidebar.slider("Max output tokens", 128, 4096, 1024, 128)
 
 # Input options
-st.subheader("1) Input Source")
+st.subheader("📚 Input source แปะแหล่งบทความที่ต้องการวิเคราะห์ ")
 
 input_mode = st.radio("Choose input type ", ["URL (ลิงก์จากบทความเช่น BBC, Medium or etc.)", "Paste text (แปะข้อความที่ต้องการเลือก)"])
 
@@ -83,23 +83,23 @@ else:
 
 
 # Tasks
-st.subheader("2) Select Task")
+st.subheader("📚 Select Task เลือกคำสั่งที่ต้องการ")
 
 task = st.selectbox(
     "Task type",
     [
-        "Summarize",
-        "Vocabulary extraction",
-        "Translate to French",
-        "Create Cloze Test",
-        "Reading Comprehension Test"   # ★ เปลี่ยน Generate Slogans เป็น Reading Test
+        "☆彡 Summarize วิเคราะห์สรุปจากบทความ ",
+        "☆彡 Vocabulary extraction ตารางศัพท์จากบทความ",
+        "☆彡 Translate to French แปลบทความ",
+        "☆彡 Create Cloze Test แบบฝึกหัดเติมคำจากบทความ",
+        "☆彡 Reading Comprehension Test แบบฝึกหัดจับใจความ (ช้อยส์) "   # ★ เปลี่ยน Generate Slogans เป็น Reading Test
     ]
 )
 
 # Run Button
-st.subheader("3) Run")
+st.subheader("📚 Run")
 
-if st.button("Run Task"):
+if st.button("Run Task !"):
 
     # โหลดจาก session ถ้า textarea ว่าง
     if not article_text.strip():
@@ -210,4 +210,5 @@ Answer Key: 1) A  2) C  3) B ...
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 

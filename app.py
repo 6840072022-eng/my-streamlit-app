@@ -8,19 +8,12 @@ import io
 # ---------------------------
 # Background Image
 # ---------------------------
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-image: url("https://images.unsplash.com/photo-1512820790803-83ca734da794?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
+
+st.image(
+    "https://images.unsplash.com/photo-1512820790803-83ca734da794?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80",
+    use_column_width=True
 )
+
 
 # Initialize session state
 if "article_text" not in st.session_state:
@@ -205,6 +198,7 @@ Return as a table:
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 
 

@@ -124,7 +124,18 @@ if st.button("Run Task"):
     if not api_key:
         st.error("Please enter an API key in the sidebar!")
     elif not article_text.strip():
-        st.error("No input text detected!")
+    
+    # ⭐ ถ้า input เป็น URL → auto-fetch ให้เลย ไม่ต้องกดปุ่ม Fetch
+        if input_mode == "URL" and url.strip():
+            text, err = fetch_article_text(url)
+            if err:
+                st.error(err)
+                st.stop()
+            st.session_state.article_text = text
+            article_text = text
+        else:
+            st.error("No input text detected!")
+            st.stop()
     else:
 
         # ---- Create prompt based on task ----
@@ -194,3 +205,4 @@ Return as a table:
 
         except Exception as e:
             st.error(f"Error: {e}")
+

@@ -199,7 +199,8 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
 
         if "|" in output:
             try:
-                df = pd.read_csv(io.StringIO(output), sep="|")
+                # อ่าน DataFrame
+                df = pd.read_csv(io.StringIO(output), sep="|", header=0, skipinitialspace=True)
 
                 # ลบคอลัมน์ Unnamed
                 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
@@ -207,7 +208,12 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
                 # สำหรับ Vocabulary extraction ให้แสดงเฉพาะ 5 คอลัมน์
                 if task == "Vocabulary extraction":
                     expected_cols = ['Index', 'Word', 'Meaning (TH)', 'Meaning (EN)', 'Example sentence']
-                    df = df[[c for c in expected_cols if c in df.columns]]
+                    cols_to_use = [c for c in expected_cols if c in df.columns]
+                    df = df[cols_to_use]
+
+                    # ถ้าไม่มี Index ให้สร้างเอง
+                    if 'Index' not in df.columns:
+                        df.insert(0, 'Index', range(1, len(df)+1))
 
                 st.dataframe(df)
 
@@ -222,4 +228,3 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
 
     except Exception as e:
         st.error(f"Error: {e}")
-

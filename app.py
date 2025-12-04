@@ -10,7 +10,7 @@ import io
 # ---------------------------
 
 st.image(
-    "https://i.postimg.cc/tJq9xYC3/IMG-0520.png",
+    "https://i.postimg.cc/BZw47ZhP/IMG-0521.jpg",
     use_column_width=True
 )
 
@@ -222,3 +222,4 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
 
     except Exception as e:
         st.error(f"Error: {e}")
+

@@ -27,9 +27,7 @@ st.markdown(
         color: #000 !important;
     }
 
-    /* ======================
-        Sidebar (แค่กรอบดำ + ข้างในชมพู)
-        ====================== */
+    /* Sidebar */
     section[data-testid="stSidebar"] {
         background-color: #FFE6F2 !important;
         border-right: 2px solid #000 !important;
@@ -44,10 +42,7 @@ st.markdown(
         color: #000 !important;
     }
 
-    /* ======================
-        Task type
-        ====================== */
-
+    /* Task type */
     .stSelectbox label {
         background: transparent !important;
     }
@@ -72,9 +67,7 @@ st.markdown(
         background-color: #FFCEE6 !important;
     }
 
-    /* ======================
-        Radio
-        ====================== */
+    /* Radio */
     .stRadio > div {
         background-color: #FFE6F2 !important;
         border: 1px solid #000 !important;
@@ -82,9 +75,7 @@ st.markdown(
         border-radius: 8px;
     }
 
-    /* ======================
-        Input fields
-        ====================== */
+    /* Input fields */
     input, textarea {
         background-color: #FFE6F2 !important;
         border: 1.5px solid #000 !important;
@@ -92,9 +83,7 @@ st.markdown(
         color: #000 !important;
     }
 
-    /* ======================
-        DataFrame
-        ====================== */
+    /* DataFrame styling */
     .stDataFrame thead tr th {
         background-color: #FFC7E3 !important;
         color: #000 !important;
@@ -105,9 +94,7 @@ st.markdown(
         color: #000 !important;
     }
 
-    /* ======================
-        Buttons
-        ====================== */
+    /* Buttons */
     button[kind="primary"],
     button[kind="secondary"] {
         background-color: #FF8FC7 !important;
@@ -120,13 +107,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
 # ---------------------------
 # Initialize session state
 # ---------------------------
 if "article_text" not in st.session_state:
     st.session_state.article_text = ""
-
 
 # ---------------------------
 # Function: Fetch article text
@@ -150,7 +135,6 @@ def fetch_article_text(url):
     texts = " ".join(texts.split())
     return texts if texts.strip() else None, None
 
-
 # ---------------------------
 # Function: Gemini generate
 # ---------------------------
@@ -159,7 +143,6 @@ def gemini_generate(api_key, model_name, prompt):
     model = genai.GenerativeModel(model_name)
     response = model.generate_content(prompt)
     return response.text
-
 
 # ---------------------------
 # Streamlit UI
@@ -178,7 +161,7 @@ model_name = st.sidebar.selectbox(
     ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
 )
 
-# Input source
+# Input Source
 st.subheader("☀️ Input Source")
 
 input_mode = st.radio("Choose input type", ["URL", "Paste text"])
@@ -186,7 +169,7 @@ input_mode = st.radio("Choose input type", ["URL", "Paste text"])
 article_text = ""
 
 if input_mode == "URL":
-    url = st.text_input("URL (ใส่ลิงก์บทความภาษาอังกฤษจากเว็บ เช่น BBC, Medium etc.)")
+    url = st.text_input("URL (BBC, Medium etc.)")
 else:
     article_text = st.text_area("Paste your text here", height=250)
     st.session_state.article_text = article_text
@@ -204,7 +187,7 @@ task = st.selectbox(
     ]
 )
 
-# Run
+# Run Task
 st.subheader("⭐️ Run")
 
 if st.button("Run Task"):
@@ -221,22 +204,19 @@ if st.button("Run Task"):
         st.session_state.article_text = text
 
     if not api_key:
-        st.error("Please enter an API key in the sidebar!")
+        st.error("Please enter an API key!")
         st.stop()
 
     if not article_text.strip():
-        st.error("No input text detected!")
+        st.error("No text detected!")
         st.stop()
 
-    # Prompt builder
+    # ----- Prompt -----
     if task == "Summarize":
         prompt = f"""
-You are a bilingual summarizer.
-
-Please summarize the following article in TWO versions:
-
-1) English Summary (6–8 sentences)
-2) Thai Summary (6–8 sentences)
+Summarize the following article in:
+1) English (6–8 sentences)
+2) Thai (6–8 sentences)
 
 Article:
 {article_text}
@@ -244,31 +224,31 @@ Article:
 
     elif task == "Vocabulary extraction":
         prompt = f"""
-คุณคือระบบดึงคำศัพท์ภาษาอังกฤษ
-โปรดดึงคำศัพท์สำคัญจากบทความด้านล่าง
-Return as a table with 5 columns:
-Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
+Extract vocabulary from the passage below.
+Return the result STRICTLY in a markdown table with this exact format:
 
+| Index | Word | Meaning (TH) | Meaning (EN) | Example sentence |
+|-------|-------|--------------|----------------|--------------------|
+
+Article:
 {article_text}
 """
 
     elif task == "Create Cloze Test":
         prompt = f"""
-สร้างแบบทดสอบ Cloze test จากบทความด้านล่าง
-ให้ 10 ข้อ มีช่องว่าง ___ และเฉลยท้ายสุด
+Create a 10-item Cloze Test from the passage.
+Use ___ as blanks and show answers at the end.
 
 {article_text}
 """
 
     elif task == "Reading Comprehension Test":
         prompt = f"""
-สร้างแบบทดสอบ Reading comprehension จำนวน 10 ข้อ
-ครอบคลุมหัวข้อ Main Idea, Purpose, Detail, Inference, Vocabulary, T/F, Tone
-เป็น Multiple Choice 4 ตัวเลือก A-D
-เฉลยท้ายสุดแบบนี้: 1) A 2) C 3) B ...
+Create 10 reading comprehension questions (A–D options).
+Include Main Idea, Inference, Tone, Vocabulary, etc.
+Show answers at the end.
 
-บทความ:
-
+Passage:
 {article_text}
 """
 
@@ -278,51 +258,22 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
         output = gemini_generate(api_key, model_name, prompt)
         st.success("Done!")
 
-        # ==========================
-        # FIXED DATAFRAME SECTION ✔️
-        # ==========================
+        # ======================================
+        # FIXED TABLE PARSER (Stable + Reliable)
+        # ======================================
         if "|" in output:
             try:
-                df = pd.read_csv(
-                    io.StringIO(output),
-                    sep="|",
-                    header=0,
-                    skipinitialspace=True
-                )
+                lines = [line for line in output.split("\n") if "|" in line]
+                table_text = "\n".join(lines)
 
-                # ลบคอลัมน์ Unnamed และค่าว่าง
+                df = pd.read_csv(io.StringIO(table_text), sep="|")
+
                 df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
                 df = df.dropna(axis=1, how="all")
-                
-                # ล้างช่องว่างที่หัวคอลัมน์
-                df.columns = df.columns.str.strip()
+                df.columns = [c.strip() for c in df.columns]
 
-                if task == "Vocabulary extraction":
-
-                    required = [
-                        "Index",
-                        "Word",
-                        "Meaning (TH)",
-                        "Meaning (EN)",
-                        "Example sentence"
-                    ]
-
-                    available = [c.strip() for c in df.columns]
-                    final_cols = [c for c in required if c in available]
-                    
-                    # **********************************************
-                    # เพิ่มขั้นตอนการล้างช่องว่างในข้อมูล (Strip data)
-                    # **********************************************
-                    for col in ["Word", "Meaning (TH)", "Meaning (EN)", "Example sentence"]:
-                        if col in df.columns:
-                            # ใช้ .astype(str) เพื่อให้แน่ใจว่าเป็น string ก่อนใช้ .str.strip()
-                            df[col] = df[col].astype(str).str.strip()
-
-
-                    if "Index" not in df.columns:
-                        df.insert(0, "Index", range(1, len(df) + 1))
-
-                    st.dataframe(df[final_cols], hide_index=True) # ใช้ final_cols เพื่อเรียงคอลัมน์ตามที่ต้องการ
+                if "Index" in df.columns:
+                    df["Index"] = pd.to_numeric(df["Index"], errors="ignore")
 
                 st.dataframe(df, hide_index=True)
 
@@ -330,10 +281,10 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
                 st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
 
             except Exception:
-                st.text_area("Output", output, height=400)
+                st.text_area("Output", output, height=420)
 
         else:
-            st.text_area("Output", output, height=400)
+            st.text_area("Output", output, height=420)
 
     except Exception as e:
         st.error(f"Error: {e}")

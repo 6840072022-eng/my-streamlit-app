@@ -12,24 +12,23 @@ import io
 st.image(
     "https://i.postimg.cc/tJq9xYC3/IMG-0520.png",
     use_column_width=True
-)
-st.markdown(
+)st.markdown(
     """
     <style>
-    /* พื้นหลังหลัก */
+
+    /* พื้นหลัง: ขาวด้านบน ไล่ไปฟ้าอ่อนด้านล่าง */
     .stApp {
-        background: linear-gradient(to bottom, #0F2027, #203A43, #2C5364);
+        background: linear-gradient(to bottom, #FFFFFF, #DDF3FF);
         height: 100vh;
+        color: #000000 !important;
     }
 
-    /* ปรับสีตัวอักษรค่าเริ่มต้นให้เป็นสีขาว */
+    /* ตัวอักษรทั้งหมดเป็นสีดำ */
     .stApp, .stApp * {
-        color: #FFFFFF !important;
+        color: #000000 !important;
     }
 
-    /* ปรับพื้นหลังของส่วนที่เป็น white default ให้เป็นสีเข้มแทน */
-    div[data-testid="stDataFrame"] table,
-    .stDataFrame table,
+    /* กล่อง input ต่าง ๆ */
     .stTextInput textarea,
     .stTextInput input,
     textarea,
@@ -37,45 +36,51 @@ st.markdown(
     .stSelectbox div[data-baseweb="select"],
     .stRadio,
     .stSelectbox {
-        background-color: rgba(0, 0, 0, 0.35) !important;
-        color: #FFFFFF !important;
+        background-color: rgba(255, 255, 255, 0.7) !important;
+        color: #000000 !important;
     }
 
     /* DataFrame header */
     .stDataFrame thead tr th {
-        background-color: rgba(0,0,0,0.6) !important;
-        color: #FFFFFF !important;
+        background-color: rgba(200, 230, 255, 0.8) !important;
+        color: #000000 !important;
     }
 
     /* เซลล์ใน DataFrame */
     .stDataFrame tbody tr td {
-        background-color: rgba(0,0,0,0.25) !important;
-        color: #FFFFFF !important;
+        background-color: rgba(255, 255, 255, 0.6) !important;
+        color: #000000 !important;
     }
 
-    /* ปุ่ม เพื่อไม่ให้ตัวหนังสือขาวบนพื้นขาว */
+    /* ปุ่ม */
     button[kind="primary"] {
-        background-color: #1E88E5 !important;
+        background-color: #2089E5 !important;
         color: #FFFFFF !important;
     }
     button[kind="secondary"] {
-        background-color: #555 !important;
+        background-color: #888 !important;
         color: #FFFFFF !important;
     }
 
-    /* placeholder สีเทาอ่อน */
+    /* placeholder */
     ::placeholder {
-        color: #DDDDDD !important;
+        color: #555555 !important;
     }
 
     /* Sidebar */
     section[data-testid="stSidebar"] * {
-        color: #FFFFFF !important;
+        color: #000000 !important; 
     }
+
+    section[data-testid="stSidebar"] {
+        background: rgba(255, 255, 255, 0.4) !important;
+    }
+
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 # ---------------------------
 # Initialize session state
@@ -265,3 +270,4 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
 
     except Exception as e:
         st.error(f"Error: {e}")
+

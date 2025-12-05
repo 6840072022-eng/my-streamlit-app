@@ -28,8 +28,8 @@ st.markdown(
     }
 
     /* ======================
-       Sidebar (แค่กรอบดำ + ข้างในชมพู)
-       ====================== */
+        Sidebar (แค่กรอบดำ + ข้างในชมพู)
+        ====================== */
     section[data-testid="stSidebar"] {
         background-color: #FFE6F2 !important;
         border-right: 2px solid #000 !important;
@@ -45,8 +45,8 @@ st.markdown(
     }
 
     /* ======================
-       Task type
-       ====================== */
+        Task type
+        ====================== */
 
     .stSelectbox label {
         background: transparent !important;
@@ -73,8 +73,8 @@ st.markdown(
     }
 
     /* ======================
-       Radio
-       ====================== */
+        Radio
+        ====================== */
     .stRadio > div {
         background-color: #FFE6F2 !important;
         border: 1px solid #000 !important;
@@ -83,8 +83,8 @@ st.markdown(
     }
 
     /* ======================
-       Input fields
-       ====================== */
+        Input fields
+        ====================== */
     input, textarea {
         background-color: #FFE6F2 !important;
         border: 1.5px solid #000 !important;
@@ -93,8 +93,8 @@ st.markdown(
     }
 
     /* ======================
-       DataFrame
-       ====================== */
+        DataFrame
+        ====================== */
     .stDataFrame thead tr th {
         background-color: #FFC7E3 !important;
         color: #000 !important;
@@ -106,8 +106,8 @@ st.markdown(
     }
 
     /* ======================
-       Buttons
-       ====================== */
+        Buttons
+        ====================== */
     button[kind="primary"],
     button[kind="secondary"] {
         background-color: #FF8FC7 !important;
@@ -290,15 +290,13 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
                     skipinitialspace=True
                 )
 
-                # ลบคอลัมน์ชื่อ Unnamed
+                # ลบคอลัมน์ Unnamed และค่าว่าง
                 df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
-
-                # ลบคอลัมน์ที่ว่างจริงๆ
                 df = df.dropna(axis=1, how="all")
+                
+                # ล้างช่องว่างที่หัวคอลัมน์
+                df.columns = df.columns.str.strip()
 
-                # -------------------------
-                # เฉพาะ Vocabulary extraction
-                # -------------------------
                 if task == "Vocabulary extraction":
 
                     required = [
@@ -309,21 +307,25 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
                         "Example sentence"
                     ]
 
-                    # strip คอลัมน์
-                    df.columns = [c.strip() for c in df.columns]
+                    available = [c.strip() for c in df.columns]
+                    final_cols = [c for c in required if c in available]
+                    
+                    # **********************************************
+                    # เพิ่มขั้นตอนการล้างช่องว่างในข้อมูล (Strip data)
+                    # **********************************************
+                    for col in ["Word", "Meaning (TH)", "Meaning (EN)", "Example sentence"]:
+                        if col in df.columns:
+                            # ใช้ .astype(str) เพื่อให้แน่ใจว่าเป็น string ก่อนใช้ .str.strip()
+                            df[col] = df[col].astype(str).str.strip()
 
-                    # เลือกเฉพาะคอลัมน์ที่มีจริงและต้องการ
-                    existing = [c for c in required if c in df.columns]
 
-                    df = df[existing]
-
-                    # ถ้าไม่มี Index ให้สร้างใหม่
                     if "Index" not in df.columns:
                         df.insert(0, "Index", range(1, len(df) + 1))
 
+                    st.dataframe(df[final_cols], hide_index=True) # ใช้ final_cols เพื่อเรียงคอลัมน์ตามที่ต้องการ
+
                 st.dataframe(df, hide_index=True)
 
-                # ปุ่ม Download
                 csv_bytes = df.to_csv(index=False).encode("utf-8")
                 st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
 

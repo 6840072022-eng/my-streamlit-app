@@ -307,8 +307,7 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
                     available = [c.strip() for c in df.columns]
                     final_cols = [c for c in required if c in available]
 
-                    df = df[final_cols]
-
+                    
                     if "Index" not in df.columns:
                         df.insert(0, "Index", range(1, len(df) + 1))
 
@@ -325,3 +324,4 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
 
     except Exception as e:
         st.error(f"Error: {e}")
+

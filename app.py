@@ -1,4 +1,4 @@
-import streamlit as st
+import streamlit as st 
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -33,46 +33,39 @@ st.markdown(
         border-right: 2px solid #000 !important;
     }
 
+    /* 🔥 เปลี่ยนกรอบช่อง API KEY + VERSION → ขาว */
     section[data-testid="stSidebar"] input,
     section[data-testid="stSidebar"] textarea,
+    section[data-testid="stSidebar"] select,
     section[data-testid="stSidebar"] .stSelectbox > div > div {
-        background-color: #FFE6F2 !important;
-        border: 1.5px solid #000 !important;
+        background-color: #FFFFFF !important;
+        border: 1.8px solid #000 !important;
         border-radius: 6px !important;
         color: #000 !important;
     }
 
-    /* รู)ตา (Eye Icon) เป็นสีฟ้า */
+    /* 🔥 ไอคอนรู)ตา (Eye icon) ให้เป็น “สีดำล้วน” */
     input[type="password"] + div svg,
     [data-testid="stPasswordInput"] svg {
-        stroke: #0099FF !important;
-        color: #0099FF !important;
+        stroke: #000 !important;
+        color: #000 !important;
         fill: none !important;
     }
 
-    /* Task type */
-    .stSelectbox label {
-        background: transparent !important;
-    }
-
-    .stSelectbox > div > div {
-        background-color: #FFE6F2 !important;
-        border: 1.5px solid #000 !important;
-        border-radius: 8px !important;
-    }
-
+    /* Select menu */
     .stSelectbox [data-baseweb="menu"] {
-        background-color: #FFE6F2 !important;
+        background-color: #FFFFFF !important;
         border: 1px solid #000 !important;
+        color: #000 !important;
     }
 
     .stSelectbox [data-baseweb="option"] {
-        background-color: #FFE6F2 !important;
+        background-color: #FFFFFF !important;
         color: #000 !important;
     }
 
     .stSelectbox [data-baseweb="option"]:hover {
-        background-color: #FFCEE6 !important;
+        background-color: #FFE6F2 !important;
     }
 
     /* Radio */
@@ -91,14 +84,14 @@ st.markdown(
         color: #000 !important;
     }
 
-    /* Vocabulary Table → ให้พื้นหลังเป็นชมพูทั้งหมด */
+    /* Vocabulary Table →ให้พื้นหลังเป็นชมพู */
     .stDataFrame thead tr th {
-        background-color: #FFB6D9 !important;  /* ชมพูเข้ม */
+        background-color: #FFB6D9 !important;
         color: #000 !important;
     }
 
     .stDataFrame tbody tr td {
-        background-color: #FFD6EB !important;  /* ชมพูอ่อน */
+        background-color: #FFD6EB !important;
         color: #000 !important;
     }
 

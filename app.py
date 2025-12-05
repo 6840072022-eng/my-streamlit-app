@@ -31,11 +31,10 @@ st.markdown(
        Sidebar (แค่กรอบดำ + ข้างในชมพู)
        ====================== */
     section[data-testid="stSidebar"] {
-        background-color: #FFE6F2 !important;  /* ชมพูอ่อน */
+        background-color: #FFE6F2 !important;
         border-right: 2px solid #000 !important;
     }
 
-    /* input ใน sidebar = ชมพูอ่อน + กรอบดำ */
     section[data-testid="stSidebar"] input,
     section[data-testid="stSidebar"] textarea,
     section[data-testid="stSidebar"] .stSelectbox > div > div {
@@ -46,23 +45,19 @@ st.markdown(
     }
 
     /* ======================
-       Task type (หัวข้อไม่ต้องมีพื้นหลัง)
-       แต่ selectbox option เป็นชมพู
+       Task type
        ====================== */
 
-    /* ปิดพื้นหลัง label */
     .stSelectbox label {
         background: transparent !important;
     }
 
-    /* กล่องเลือก task = ชมพูอ่อน + ขอบดำ */
     .stSelectbox > div > div {
         background-color: #FFE6F2 !important;
         border: 1.5px solid #000 !important;
         border-radius: 8px !important;
     }
 
-    /* ตัวเลือก dropdown */
     .stSelectbox [data-baseweb="menu"] {
         background-color: #FFE6F2 !important;
         border: 1px solid #000 !important;
@@ -74,11 +69,11 @@ st.markdown(
     }
 
     .stSelectbox [data-baseweb="option"]:hover {
-        background-color: #FFCEE6 !important;  /* ชมพูเข้มนิดเวลา hover */
+        background-color: #FFCEE6 !important;
     }
 
     /* ======================
-       Radio (Input Source)
+       Radio
        ====================== */
     .stRadio > div {
         background-color: #FFE6F2 !important;
@@ -126,12 +121,12 @@ st.markdown(
 )
 
 
-
 # ---------------------------
 # Initialize session state
 # ---------------------------
 if "article_text" not in st.session_state:
     st.session_state.article_text = ""
+
 
 # ---------------------------
 # Function: Fetch article text
@@ -155,29 +150,25 @@ def fetch_article_text(url):
     texts = " ".join(texts.split())
     return texts if texts.strip() else None, None
 
+
 # ---------------------------
-# Function: Gemini call (AUTO TOKEN MODE)
+# Function: Gemini generate
 # ---------------------------
 def gemini_generate(api_key, model_name, prompt):
     genai.configure(api_key=api_key)
-
     model = genai.GenerativeModel(model_name)
-
-    # ไม่มี generation_config → ปล่อยให้ model จัดการ tokens เอง
     response = model.generate_content(prompt)
-
     return response.text
+
 
 # ---------------------------
 # Streamlit UI
 # ---------------------------
 st.set_page_config(layout="wide", page_title="📖 Practice Reading Skills")
 
-# Title & Caption
 st.title("📖 Practice Reading Skills from a Passage 👓")
 st.caption("For learners preparing for TOEIC, IELTS, or English I&II reading tests for arts students.")
 
-# Sidebar
 st.sidebar.header("Settings")
 
 api_key = st.sidebar.text_input("Google Gemini API Key", type="password")
@@ -187,9 +178,7 @@ model_name = st.sidebar.selectbox(
     ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
 )
 
-# (ลบ max tokens slider ออกแล้ว)
-
-# Input options
+# Input source
 st.subheader("☀️ Input Source")
 
 input_mode = st.radio("Choose input type", ["URL", "Paste text"])
@@ -202,7 +191,7 @@ else:
     article_text = st.text_area("Paste your text here", height=250)
     st.session_state.article_text = article_text
 
-# Tasks
+# Task select
 st.subheader("🌈 Select Task")
 
 task = st.selectbox(
@@ -215,7 +204,7 @@ task = st.selectbox(
     ]
 )
 
-# Run Button
+# Run
 st.subheader("⭐️ Run")
 
 if st.button("Run Task"):
@@ -239,7 +228,7 @@ if st.button("Run Task"):
         st.error("No input text detected!")
         st.stop()
 
-    # ---- Create prompt ----
+    # Prompt builder
     if task == "Summarize":
         prompt = f"""
 You are a bilingual summarizer.
@@ -283,38 +272,56 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
 {article_text}
 """
 
-    # ---- Run Gemini ----
     st.info("Processing with Gemini…")
 
     try:
         output = gemini_generate(api_key, model_name, prompt)
         st.success("Done!")
 
+        # ==========================
+        # FIXED DATAFRAME SECTION ✔️
+        # ==========================
         if "|" in output:
             try:
-                df = pd.read_csv(io.StringIO(output), sep="|", header=0, skipinitialspace=True)
-                df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+                df = pd.read_csv(
+                    io.StringIO(output),
+                    sep="|",
+                    header=0,
+                    skipinitialspace=True
+                )
+
+                # ลบคอลัมน์ Unnamed และค่าว่าง
+                df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+                df = df.dropna(axis=1, how="all")
 
                 if task == "Vocabulary extraction":
-                    expected_cols = ['Index', 'Word', 'Meaning (TH)', 'Meaning (EN)', 'Example sentence']
-                    cols_to_use = [c for c in expected_cols if c in df.columns]
-                    df = df[cols_to_use]
 
-                    if 'Index' not in df.columns:
-                        df.insert(0, 'Index', range(1, len(df)+1))
+                    required = [
+                        "Index",
+                        "Word",
+                        "Meaning (TH)",
+                        "Meaning (EN)",
+                        "Example sentence"
+                    ]
 
-                st.dataframe(df)
+                    available = [c.strip() for c in df.columns]
+                    final_cols = [c for c in required if c in available]
+
+                    df = df[final_cols]
+
+                    if "Index" not in df.columns:
+                        df.insert(0, "Index", range(1, len(df) + 1))
+
+                st.dataframe(df, hide_index=True)
 
                 csv_bytes = df.to_csv(index=False).encode("utf-8")
                 st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
 
             except Exception:
                 st.text_area("Output", output, height=400)
+
         else:
             st.text_area("Output", output, height=400)
 
     except Exception as e:
         st.error(f"Error: {e}")
-
-
-

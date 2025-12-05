@@ -27,26 +27,19 @@ st.markdown(
         color: #000 !important;
     }
 
-    /* ------------------------------------ */
-    /* Sidebar → เปลี่ยนเป็นพื้นหลังดำ ตัวอักษรขาว */
-    /* ------------------------------------ */
+    /* Sidebar */
     section[data-testid="stSidebar"] {
-        background-color: #000 !important;
-        border-right: 2px solid #FFF !important;
-        color: #FFF !important;
-    }
-
-    section[data-testid="stSidebar"] * {
-        color: #FFF !important;
+        background-color: #FFE6F2 !important;
+        border-right: 2px solid #000 !important;
     }
 
     section[data-testid="stSidebar"] input,
     section[data-testid="stSidebar"] textarea,
     section[data-testid="stSidebar"] .stSelectbox > div > div {
-        background-color: #333 !important;
-        border: 1.5px solid #FFF !important;
+        background-color: #FFE6F2 !important;
+        border: 1.5px solid #000 !important;
         border-radius: 6px !important;
-        color: #FFF !important;
+        color: #000 !important;
     }
 
     /* Eye Icon */
@@ -119,9 +112,9 @@ def fetch_article_text(url):
 # ---------------------------
 # Function: Gemini generate
 # ---------------------------
-def gemini_generate(api_key, prompt):
+def gemini_generate(api_key, model_name, prompt):
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.0-flash")  # 🔥 fix model เดียว
+    model = genai.GenerativeModel(model_name)
     response = model.generate_content(prompt)
     return response.text
 
@@ -135,12 +128,14 @@ st.caption("For learners preparing for TOEIC, IELTS, or English I&II reading tes
 
 st.sidebar.header("Settings")
 
-# 🔥 ลบ selectbox model
 api_key = st.sidebar.text_input("Google Gemini API Key", type="password")
 
-# -------------------------------------------------
+model_name = st.sidebar.selectbox(
+    "Model",
+    ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+)
+
 # Input Source
-# -------------------------------------------------
 st.subheader("☀️ Input Source")
 
 input_mode = st.radio("Choose input type", ["URL", "Paste text"])
@@ -234,7 +229,7 @@ Passage:
     st.info("Processing with Gemini…")
 
     try:
-        output = gemini_generate(api_key, prompt)
+        output = gemini_generate(api_key, model_name, prompt)
         st.success("Done!")
 
         # ======================================

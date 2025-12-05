@@ -1,4 +1,4 @@
-เอางี้ พอละ แกแค่เพิ่มคำแปลท้ายคำสั่งภาษาอังกิดให้ชั้นก็พอ ไม่ต้องเติมลงคำที่ชั้นใส่อยู๋แล้ว และอย่าทำไรกับคำตอบ แก้แค่ตามที่บอก import streamlit as st
+import streamlit as st
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -286,3 +286,4 @@ Passage:
 
     except Exception as e:
         st.error(f"Error: {e}")
+

@@ -6,106 +6,110 @@ import google.generativeai as genai
 import io
 
 # ---------------------------
-# Background Image / Gradient
+# Background Image
 # ---------------------------
-
 st.image(
     "https://i.postimg.cc/tJq9xYC3/IMG-0520.png",
     use_column_width=True
 )
-st.markdown(
-    """
-    <style>
 
-    /* พื้นหลังหลัก: ขาว → ฟ้าอ่อน */
-    .stApp {
-        background: linear-gradient(to bottom, #FFFFFF, #DDF3FF);
-        color: #000 !important;
-    }
+# ---------------------------
+# CSS Styling (ปรับใหม่)
+# ---------------------------
+st.markdown("""
+<style>
 
-    .stApp, .stApp * {
-        color: #000 !important;
-    }
+/* ---------------------
+   MAIN BACKGROUND
+----------------------*/
+.stApp {
+    background: linear-gradient(to bottom, #FFFFFF, #DDF3FF);
+    color: #000 !important;
+}
+.stApp, .stApp * {
+    color: #000 !important;
+}
 
-    /* Sidebar */
-    section[data-testid="stSidebar"] {
-        background-color: #FFE6F2 !important;
-        border-right: 2px solid #000 !important;
-    }
+/* ---------------------
+   SIDEBAR
+----------------------*/
+section[data-testid="stSidebar"] {
+    background-color: #FFE6F2 !important;
+    border-right: 2px solid #000 !important;
+}
 
-    section[data-testid="stSidebar"] input,
-    section[data-testid="stSidebar"] textarea,
-    section[data-testid="stSidebar"] .stSelectbox > div > div {
-        background-color: #FFE6F2 !important;
-        border: 1.5px solid #000 !important;
-        border-radius: 6px !important;
-        color: #000 !important;
-    }
+section[data-testid="stSidebar"] input,
+section[data-testid="stSidebar"] textarea,
+section[data-testid="stSidebar"] .stSelectbox > div > div {
+    background-color: #FFE6F2 !important;
+    border: 1.5px solid #000 !important;
+    border-radius: 6px !important;
+}
 
-    /* Task type */
-    .stSelectbox label {
-        background: transparent !important;
-    }
+/* ปุ่มรูป "ตา" – show/hide password */
+section[data-testid="stSidebar"] svg {
+    color: #3FA9F5 !important;  /* ฟ้า */
+}
 
-    .stSelectbox > div > div {
-        background-color: #FFE6F2 !important;
-        border: 1.5px solid #000 !important;
-        border-radius: 8px !important;
-    }
+/* ---------------------
+   SELECTBOX
+----------------------*/
+.stSelectbox label {
+    background: transparent !important;
+}
+.stSelectbox > div > div {
+    background-color: #FFE6F2 !important;
+    border: 1.5px solid #000 !important;
+    border-radius: 8px !important;
+}
+.stSelectbox [data-baseweb="menu"] {
+    background-color: #FFE6F2 !important;
+    border: 1px solid #000 !important;
+}
+.stSelectbox [data-baseweb="option"] {
+    background-color: #FFE6F2 !important;
+}
+.stSelectbox [data-baseweb="option"]:hover {
+    background-color: #FFCEE6 !important;
+}
 
-    .stSelectbox [data-baseweb="menu"] {
-        background-color: #FFE6F2 !important;
-        border: 1px solid #000 !important;
-    }
+/* ---------------------
+   RADIO
+----------------------*/
+.stRadio > div {
+    background-color: #FFE6F2 !important;
+    border: 1px solid #000 !important;
+    padding: 8px;
+    border-radius: 8px;
+}
 
-    .stSelectbox [data-baseweb="option"] {
-        background-color: #FFE6F2 !important;
-        color: #000 !important;
-    }
+/* ---------------------
+   DATAFRAME – Pink theme
+----------------------*/
+div[data-testid="stDataFrame"] thead th {
+    background-color: #FFC7E3 !important;
+    color: #000 !important;
+}
+div[data-testid="stDataFrame"] tbody td {
+    background-color: #FFE6F2 !important;
+    color: #000 !important;
+}
+div[data-testid="stDataFrame"] {
+    background-color: #FFE6F2 !important;
+}
 
-    .stSelectbox [data-baseweb="option"]:hover {
-        background-color: #FFCEE6 !important;
-    }
+/* ---------------------
+   BUTTONS
+----------------------*/
+button[kind="primary"],
+button[kind="secondary"] {
+    background-color: #FF8FC7 !important;
+    color: #FFF !important;
+    border-radius: 8px !important;
+}
 
-    /* Radio */
-    .stRadio > div {
-        background-color: #FFE6F2 !important;
-        border: 1px solid #000 !important;
-        padding: 8px;
-        border-radius: 8px;
-    }
-
-    /* Input fields */
-    input, textarea {
-        background-color: #FFE6F2 !important;
-        border: 1.5px solid #000 !important;
-        border-radius: 6px !important;
-        color: #000 !important;
-    }
-
-    /* DataFrame styling */
-    .stDataFrame thead tr th {
-        background-color: #FFC7E3 !important;
-        color: #000 !important;
-    }
-
-    .stDataFrame tbody tr td {
-        background-color: #FFE6F2 !important;
-        color: #000 !important;
-    }
-
-    /* Buttons */
-    button[kind="primary"],
-    button[kind="secondary"] {
-        background-color: #FF8FC7 !important;
-        color: #FFF !important;
-        border-radius: 8px !important;
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+</style>
+""", unsafe_allow_html=True)
 
 # ---------------------------
 # Initialize session state
@@ -114,7 +118,7 @@ if "article_text" not in st.session_state:
     st.session_state.article_text = ""
 
 # ---------------------------
-# Function: Fetch article text
+# Function: Fetch URL
 # ---------------------------
 def fetch_article_text(url):
     try:
@@ -127,16 +131,16 @@ def fetch_article_text(url):
 
     article_tags = soup.find_all(["article"])
     if article_tags:
-        texts = " ".join(a.get_text(separator=" ", strip=True) for a in article_tags)
+        texts = " ".join(a.get_text(" ", strip=True) for a in article_tags)
     else:
         paragraphs = soup.find_all("p")
-        texts = " ".join(p.get_text(separator=" ", strip=True) for p in paragraphs)
+        texts = " ".join(p.get_text(" ", strip=True) for p in paragraphs)
 
     texts = " ".join(texts.split())
     return texts if texts.strip() else None, None
 
 # ---------------------------
-# Function: Gemini generate
+# Gemini
 # ---------------------------
 def gemini_generate(api_key, model_name, prompt):
     genai.configure(api_key=api_key)
@@ -145,12 +149,12 @@ def gemini_generate(api_key, model_name, prompt):
     return response.text
 
 # ---------------------------
-# Streamlit UI
+# UI
 # ---------------------------
 st.set_page_config(layout="wide", page_title="📖 Practice Reading Skills")
 
 st.title("📖 Practice Reading Skills from a Passage 👓")
-st.caption("For learners preparing for TOEIC, IELTS, or English I&II reading tests for arts students.")
+st.caption("For learners preparing for TOEIC, IELTS, or English I&II reading tests.")
 
 st.sidebar.header("Settings")
 
@@ -161,11 +165,10 @@ model_name = st.sidebar.selectbox(
     ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
 )
 
-# Input Source
+# Input source
 st.subheader("☀️ Input Source")
 
 input_mode = st.radio("Choose input type", ["URL", "Paste text"])
-
 article_text = ""
 
 if input_mode == "URL":
@@ -174,20 +177,15 @@ else:
     article_text = st.text_area("Paste your text here", height=250)
     st.session_state.article_text = article_text
 
-# Task select
+# Task
 st.subheader("🌈 Select Task")
 
 task = st.selectbox(
     "Task type",
-    [
-        "Summarize",
-        "Vocabulary extraction",
-        "Create Cloze Test",
-        "Reading Comprehension Test"
-    ]
+    ["Summarize", "Vocabulary extraction", "Create Cloze Test", "Reading Comprehension Test"]
 )
 
-# Run Task
+# Run
 st.subheader("⭐️ Run")
 
 if st.button("Run Task"):
@@ -211,7 +209,7 @@ if st.button("Run Task"):
         st.error("No text detected!")
         st.stop()
 
-    # ----- Prompt -----
+    # PROMPTS
     if task == "Summarize":
         prompt = f"""
 Summarize the following article in:
@@ -225,7 +223,7 @@ Article:
     elif task == "Vocabulary extraction":
         prompt = f"""
 Extract vocabulary from the passage below.
-Return the result STRICTLY in a markdown table with this format:
+Return the result **strictly in a markdown table**:
 
 | Index | Word | Meaning (TH) | Meaning (EN) | Example sentence |
 |-------|-------|--------------|----------------|--------------------|
@@ -245,7 +243,6 @@ Use ___ as blanks and show answers at the end.
     elif task == "Reading Comprehension Test":
         prompt = f"""
 Create 10 reading comprehension questions (A–D options).
-Include Main Idea, Inference, Tone, Vocabulary, etc.
 Show answers at the end.
 
 Passage:
@@ -258,40 +255,31 @@ Passage:
         output = gemini_generate(api_key, model_name, prompt)
         st.success("Done!")
 
-        # ======================================
-        # TABLE PARSER – remove "-----" rows ✔
-        # ======================================
+        # ===============================
+        # CLEAN TABLE FOR VOCAB
+        # ===============================
         if "|" in output:
             try:
                 raw_lines = output.split("\n")
-
                 lines = []
+
                 for line in raw_lines:
                     if "|" not in line:
                         continue
 
-                    # skip separator row like |----|----|
-                    cell_parts = [c.strip() for c in line.split("|") if c.strip()]
-                    if all(set(c) <= {"-"} for c in cell_parts):
+                    # skip separator e.g. |-----|-----|
+                    parts = [c.strip() for c in line.split("|") if c.strip()]
+                    if all(set(c) <= {"-"} for c in parts):
                         continue
 
                     lines.append(line)
 
-                table_text = "\n".join(lines)
+                table_txt = "\n".join(lines)
 
-                df = pd.read_csv(
-                    io.StringIO(table_text),
-                    sep="|",
-                    engine="python"
-                )
-
+                df = pd.read_csv(io.StringIO(table_txt), sep="|", engine="python")
                 df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
                 df.columns = [c.strip() for c in df.columns]
                 df = df.dropna(axis=1, how="all")
-
-                # auto index fix
-                if "Index" in df.columns:
-                    df["Index"] = pd.to_numeric(df["Index"], errors="ignore")
 
                 st.dataframe(df, hide_index=True)
 

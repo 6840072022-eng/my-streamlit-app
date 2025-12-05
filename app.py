@@ -55,7 +55,7 @@ st.markdown(
     }
 
     /* Placeholder / default text ของ Gemini version selectbox → ชมพู */
-    section[data-testid="stSidebar"] div.css-1wa3eu0-placeholder {
+    section[data-testid="stSidebar"] div[data-baseweb="select"] div[role="combobox"] > div {
         color: #FF69B4 !important;
     }
 
@@ -288,37 +288,4 @@ Passage:
                     if "|" not in line:
                         continue
 
-                    cell_parts = [c.strip() for c in line.split("|") if c.strip()]
-                    if all(set(c) <= {"-"} for c in cell_parts):
-                        continue
-
-                    lines.append(line)
-
-                table_text = "\n".join(lines)
-
-                df = pd.read_csv(
-                    io.StringIO(table_text),
-                    sep="|",
-                    engine="python"
-                )
-
-                df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
-                df.columns = [c.strip() for c in df.columns]
-                df = df.dropna(axis=1, how="all")
-
-                if "Index" in df.columns:
-                    df["Index"] = pd.to_numeric(df["Index"], errors="ignore")
-
-                st.dataframe(df, hide_index=True)
-
-                csv_bytes = df.to_csv(index=False).encode("utf-8")
-                st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
-
-            except Exception:
-                st.text_area("Output", output, height=420)
-
-        else:
-            st.text_area("Output", output, height=420)
-
-    except Exception as e:
-        st.error(f"Error: {e}")
+                    cell_parts = [c.strip() for c in line.split("|")]()_

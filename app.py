@@ -17,7 +17,7 @@ st.markdown(
     """
     <style>
 
-    /* พื้นหลังหลัก */
+    /* พื้นหลังหลัก: ขาว → ฟ้าอ่อน */
     .stApp {
         background: linear-gradient(to bottom, #FFFFFF, #DDF3FF);
         color: #000 !important;
@@ -28,7 +28,7 @@ st.markdown(
     }
 
     /* ------------------------------------ */
-    /* Sidebar → ดำ ตัวอักษรขาว */
+    /* Sidebar → เปลี่ยนเป็นพื้นหลังดำ ตัวอักษรขาว */
     /* ------------------------------------ */
     section[data-testid="stSidebar"] {
         background-color: #000 !important;
@@ -45,27 +45,8 @@ st.markdown(
     section[data-testid="stSidebar"] .stSelectbox > div > div {
         background-color: #333 !important;
         border: 1.5px solid #FFF !important;
+        border-radius: 6px !important;
         color: #FFF !important;
-    }
-
-    /* ------------------------------ */
-    /* 🔥 กล่อง URL + Paste text = ชมพูกรอบดำ */
-    /* ------------------------------ */
-    textarea, input[type="text"] {
-        background-color: #FFD6EB !important;
-        border: 2px solid #000 !important;
-        color: #000 !important;
-        border-radius: 8px !important;
-    }
-
-    /* ------------------------------ */
-    /* 🔥 Output box = ชมพูกรอบดำ */
-    /* ------------------------------ */
-    .stTextArea textarea {
-        background-color: #FFD6EB !important;
-        border: 2px solid #000 !important;
-        color: #000 !important;
-        border-radius: 8px !important;
     }
 
     /* Eye Icon */
@@ -73,6 +54,14 @@ st.markdown(
     [data-testid="stPasswordInput"] svg {
         stroke: #0099FF !important;
         color: #0099FF !important;
+        fill: none !important;
+    }
+
+    /* Select */
+    .stSelectbox > div > div {
+        background-color: #FFE6F2 !important;
+        border: 1.5px solid #000 !important;
+        border-radius: 8px !important;
     }
 
     /* Table Header */
@@ -132,7 +121,7 @@ def fetch_article_text(url):
 # ---------------------------
 def gemini_generate(api_key, prompt):
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.0-flash")
+    model = genai.GenerativeModel("gemini-2.0-flash")  # 🔥 fix model เดียว
     response = model.generate_content(prompt)
     return response.text
 
@@ -146,7 +135,7 @@ st.caption("For learners preparing for TOEIC, IELTS, or English I&II reading tes
 
 st.sidebar.header("Settings")
 
-# No model select
+# 🔥 ลบ selectbox model
 api_key = st.sidebar.text_input("Google Gemini API Key", type="password")
 
 # -------------------------------------------------
@@ -164,9 +153,7 @@ else:
     article_text = st.text_area("Paste your text here", height=250)
     st.session_state.article_text = article_text
 
-# -------------------------------------------------
 # Task select
-# -------------------------------------------------
 st.subheader("🌈 Select Task")
 
 task = st.selectbox(
@@ -179,9 +166,7 @@ task = st.selectbox(
     ]
 )
 
-# -------------------------------------------------
 # Run Task
-# -------------------------------------------------
 st.subheader("⭐️ Run")
 
 if st.button("Run Task"):
@@ -252,9 +237,9 @@ Passage:
         output = gemini_generate(api_key, prompt)
         st.success("Done!")
 
-        # ===========================
-        # SAFE TABLE PARSER
-        # ===========================
+        # ======================================
+        # SAFE TABLE PARSER (Markdown → DataFrame)
+        # ======================================
         if "|" in output:
             try:
                 raw = output.split("\n")
@@ -273,6 +258,7 @@ Passage:
                 if len(clean) < 2:
                     raise ValueError("Not a table")
 
+                # remove leading/trailing |
                 fixed = []
                 for row in clean:
                     r = row
@@ -283,6 +269,7 @@ Passage:
                     fixed.append(r)
                 fixed_text = "\n".join(fixed)
 
+                # parse table
                 df = pd.read_csv(
                     io.StringIO(fixed_text.replace("|", ",")),
                     engine="python"

@@ -82,7 +82,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
 # ---------------------------
 # Initialize session state
 # ---------------------------
@@ -116,12 +115,8 @@ def fetch_article_text(url):
 # ---------------------------
 def gemini_generate(api_key, model_name, prompt):
     genai.configure(api_key=api_key)
-
     model = genai.GenerativeModel(model_name)
-
-    # ไม่มี generation_config → ปล่อยให้ model จัดการ tokens เอง
     response = model.generate_content(prompt)
-
     return response.text
 
 # ---------------------------
@@ -142,8 +137,6 @@ model_name = st.sidebar.selectbox(
     "Model",
     ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
 )
-
-# (ลบ max tokens slider ออกแล้ว)
 
 # Input options
 st.subheader("☀️ Input Source")
@@ -170,106 +163,3 @@ task = st.selectbox(
         "Reading Comprehension Test"
     ]
 )
-
-# Run Button
-st.subheader("⭐️ Run")
-
-if st.button("Run Task"):
-
-    if not article_text.strip():
-        article_text = st.session_state.article_text
-
-    if input_mode == "URL" and url.strip() and not article_text.strip():
-        text, err = fetch_article_text(url)
-        if err:
-            st.error(err)
-            st.stop()
-        article_text = text
-        st.session_state.article_text = text
-
-    if not api_key:
-        st.error("Please enter an API key in the sidebar!")
-        st.stop()
-
-    if not article_text.strip():
-        st.error("No input text detected!")
-        st.stop()
-
-    # ---- Create prompt ----
-    if task == "Summarize":
-        prompt = f"""
-You are a bilingual summarizer.
-
-Please summarize the following article in TWO versions:
-
-1) English Summary (6–8 sentences)
-2) Thai Summary (6–8 sentences)
-
-Article:
-{article_text}
-"""
-
-    elif task == "Vocabulary extraction":
-        prompt = f"""
-คุณคือระบบดึงคำศัพท์ภาษาอังกฤษ
-โปรดดึงคำศัพท์สำคัญจากบทความด้านล่าง
-Return as a table with 5 columns:
-Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
-
-{article_text}
-"""
-
-    elif task == "Create Cloze Test":
-        prompt = f"""
-สร้างแบบทดสอบ Cloze test จากบทความด้านล่าง
-ให้ 10 ข้อ มีช่องว่าง ___ และเฉลยท้ายสุด
-
-{article_text}
-"""
-
-    elif task == "Reading Comprehension Test":
-        prompt = f"""
-สร้างแบบทดสอบ Reading comprehension จำนวน 10 ข้อ
-ครอบคลุมหัวข้อ Main Idea, Purpose, Detail, Inference, Vocabulary, T/F, Tone
-เป็น Multiple Choice 4 ตัวเลือก A-D
-เฉลยท้ายสุดแบบนี้: 1) A 2) C 3) B ...
-
-บทความ:
-
-{article_text}
-"""
-
-    # ---- Run Gemini ----
-    st.info("Processing with Gemini…")
-
-    try:
-        output = gemini_generate(api_key, model_name, prompt)
-        st.success("Done!")
-
-        if "|" in output:
-            try:
-                df = pd.read_csv(io.StringIO(output), sep="|", header=0, skipinitialspace=True)
-                df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-
-                if task == "Vocabulary extraction":
-                    expected_cols = ['Index', 'Word', 'Meaning (TH)', 'Meaning (EN)', 'Example sentence']
-                    cols_to_use = [c for c in expected_cols if c in df.columns]
-                    df = df[cols_to_use]
-
-                    if 'Index' not in df.columns:
-                        df.insert(0, 'Index', range(1, len(df)+1))
-
-                st.dataframe(df)
-
-                csv_bytes = df.to_csv(index=False).encode("utf-8")
-                st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
-
-            except Exception:
-                st.text_area("Output", output, height=400)
-        else:
-            st.text_area("Output", output, height=400)
-
-    except Exception as e:
-        st.error(f"Error: {e}")
-
-

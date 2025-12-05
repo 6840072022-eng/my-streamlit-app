@@ -17,78 +17,114 @@ st.markdown(
     """
     <style>
 
-    /* พื้นหลัง: ขาวด้านบน ไล่ไปฟ้าอ่อนด้านล่าง */
+    /* พื้นหลังหลัก: ขาว → ฟ้าอ่อน */
     .stApp {
         background: linear-gradient(to bottom, #FFFFFF, #DDF3FF);
-        height: 100vh;
-        color: #000000 !important;
-    }
-
-    /* ตัวอักษรทั้งหมดเป็นสีดำ */
-    .stApp, .stApp * {
-        color: #000000 !important;
-    }
-
-    /* ====== 🔥 กล่องทั้งหมดเป็นสีชมพูอ่อน ====== */
-    /* Input, textarea */
-    .stTextInput textarea,
-    .stTextInput input,
-    textarea,
-    input {
-        background-color: #FFE6F2 !important;   /* ชมพูอ่อน */
         color: #000 !important;
     }
 
-    /* Selectbox / dropdown */
-    .stSelectbox div[data-baseweb="select"],
-    .stSelectbox {
-        background-color: #FFE6F2 !important;
+    .stApp, .stApp * {
+        color: #000 !important;
     }
 
-    /* Radio buttons container */
+    /* ======================
+       Sidebar (แค่กรอบดำ + ข้างในชมพู)
+       ====================== */
+    section[data-testid="stSidebar"] {
+        background-color: #FFE6F2 !important;  /* ชมพูอ่อน */
+        border-right: 2px solid #000 !important;
+    }
+
+    /* input ใน sidebar = ชมพูอ่อน + กรอบดำ */
+    section[data-testid="stSidebar"] input,
+    section[data-testid="stSidebar"] textarea,
+    section[data-testid="stSidebar"] .stSelectbox > div > div {
+        background-color: #FFE6F2 !important;
+        border: 1.5px solid #000 !important;
+        border-radius: 6px !important;
+        color: #000 !important;
+    }
+
+    /* ======================
+       Task type (หัวข้อไม่ต้องมีพื้นหลัง)
+       แต่ selectbox option เป็นชมพู
+       ====================== */
+
+    /* ปิดพื้นหลัง label */
+    .stSelectbox label {
+        background: transparent !important;
+    }
+
+    /* กล่องเลือก task = ชมพูอ่อน + ขอบดำ */
+    .stSelectbox > div > div {
+        background-color: #FFE6F2 !important;
+        border: 1.5px solid #000 !important;
+        border-radius: 8px !important;
+    }
+
+    /* ตัวเลือก dropdown */
+    .stSelectbox [data-baseweb="menu"] {
+        background-color: #FFE6F2 !important;
+        border: 1px solid #000 !important;
+    }
+
+    .stSelectbox [data-baseweb="option"] {
+        background-color: #FFE6F2 !important;
+        color: #000 !important;
+    }
+
+    .stSelectbox [data-baseweb="option"]:hover {
+        background-color: #FFCEE6 !important;  /* ชมพูเข้มนิดเวลา hover */
+    }
+
+    /* ======================
+       Radio (Input Source)
+       ====================== */
     .stRadio > div {
         background-color: #FFE6F2 !important;
+        border: 1px solid #000 !important;
         padding: 8px;
         border-radius: 8px;
     }
 
-    /* DataFrame header */
-    .stDataFrame thead tr th {
-        background-color: #FFC7E3 !important;   /* header ชมพูเข้มขึ้นนิด */
+    /* ======================
+       Input fields
+       ====================== */
+    input, textarea {
+        background-color: #FFE6F2 !important;
+        border: 1.5px solid #000 !important;
+        border-radius: 6px !important;
         color: #000 !important;
     }
 
-    /* DataFrame cells */
+    /* ======================
+       DataFrame
+       ====================== */
+    .stDataFrame thead tr th {
+        background-color: #FFC7E3 !important;
+        color: #000 !important;
+    }
+
     .stDataFrame tbody tr td {
         background-color: #FFE6F2 !important;
         color: #000 !important;
     }
 
-    /* Buttons */
+    /* ======================
+       Buttons
+       ====================== */
     button[kind="primary"],
     button[kind="secondary"] {
-        background-color: #FF8FC7 !important;  /* ชมพูเข้ม */
-        color: #FFFFFF !important;
+        background-color: #FF8FC7 !important;
+        color: #FFF !important;
         border-radius: 8px !important;
-    }
-
-    /* Placeholder */
-    ::placeholder {
-        color: #444 !important;
-    }
-
-    /* Sidebar */
-    section[data-testid="stSidebar"] {
-        background-color: #FFE6F2 !important;
-    }
-    section[data-testid="stSidebar"] * {
-        color: #000 !important;
     }
 
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 
 # ---------------------------
@@ -279,5 +315,6 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 

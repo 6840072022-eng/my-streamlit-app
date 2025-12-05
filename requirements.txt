@@ -4,3 +4,4 @@ beautifulsoup4
 requests
 openai
 google-genai
+google-generative-ai

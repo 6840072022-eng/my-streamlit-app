@@ -225,7 +225,7 @@ Article:
     elif task == "Vocabulary extraction":
         prompt = f"""
 Extract vocabulary from the passage below.
-Return the result STRICTLY in a markdown table with this exact format:
+Return the result STRICTLY in a markdown table with this format:
 
 | Index | Word | Meaning (TH) | Meaning (EN) | Example sentence |
 |-------|-------|--------------|----------------|--------------------|
@@ -259,19 +259,37 @@ Passage:
         st.success("Done!")
 
         # ======================================
-        # FIXED TABLE PARSER (Stable + Reliable)
+        # TABLE PARSER – remove "-----" rows ✔
         # ======================================
         if "|" in output:
             try:
-                lines = [line for line in output.split("\n") if "|" in line]
+                raw_lines = output.split("\n")
+
+                lines = []
+                for line in raw_lines:
+                    if "|" not in line:
+                        continue
+
+                    # skip separator row like |----|----|
+                    cell_parts = [c.strip() for c in line.split("|") if c.strip()]
+                    if all(set(c) <= {"-"} for c in cell_parts):
+                        continue
+
+                    lines.append(line)
+
                 table_text = "\n".join(lines)
 
-                df = pd.read_csv(io.StringIO(table_text), sep="|")
+                df = pd.read_csv(
+                    io.StringIO(table_text),
+                    sep="|",
+                    engine="python"
+                )
 
                 df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
-                df = df.dropna(axis=1, how="all")
                 df.columns = [c.strip() for c in df.columns]
+                df = df.dropna(axis=1, how="all")
 
+                # auto index fix
                 if "Index" in df.columns:
                     df["Index"] = pd.to_numeric(df["Index"], errors="ignore")
 

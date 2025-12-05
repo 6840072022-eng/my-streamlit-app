@@ -16,39 +16,109 @@ st.image(
 st.markdown(
     """
     <style>
-    /* Sidebar background → ดำ */
-    section[data-testid="stSidebar"] {
-        background-color: #000000 !important;
-        border-right: 2px solid #000 !important;
+
+    /* พื้นหลังหลัก: ขาว → ฟ้าอ่อน (เดิม) */
+    .stApp {
+        background: linear-gradient(to bottom, #FFFFFF, #DDF3FF);
+        color: #000 !important;
     }
 
-    /* Sidebar text → ขาว */
+    .stApp, .stApp * {
+        color: #000 !important;
+    }
+
+    /* ---------------------------
+       🔥 แก้เฉพาะ sidebar
+       --------------------------- */
+    section[data-testid="stSidebar"] {
+        background-color: #000000 !important; /* sidebar → ดำ */
+    }
+
     section[data-testid="stSidebar"],
     section[data-testid="stSidebar"] * {
-        color: #FFFFFF !important;
+        color: #FFFFFF !important; /* ตัวอักษร → ขาว */
     }
 
-    /* Input fields ใน sidebar → ขาว (ยังคงเดิม) */
     section[data-testid="stSidebar"] input,
     section[data-testid="stSidebar"] .stSelectbox > div > div {
-        background-color: #FFFFFF !important;
+        background-color: #FFFFFF !important; /* input → ขาว */
         border: 2px solid #000000 !important;
         border-radius: 6px !important;
         color: #000 !important;
     }
 
-    /* Eye icon (password toggle) → ขาว */
     input[type="password"] + div svg,
     [data-testid="stPasswordInput"] svg {
-        stroke: #FFFFFF !important;
+        stroke: #FFFFFF !important; /* eye icon → ขาว */
         color: #FFFFFF !important;
         fill: none !important;
     }
+
+    /* ส่วนอื่นๆ ทุกอย่างเดิมตามโค้ดคุณ */
+    /* Task type */
+    .stSelectbox label {
+        background: transparent !important;
+    }
+
+    .stSelectbox > div > div {
+        background-color: #FFE6F2 !important;
+        border: 1.5px solid #000 !important;
+        border-radius: 8px !important;
+    }
+
+    .stSelectbox [data-baseweb="menu"] {
+        background-color: #FFE6F2 !important;
+        border: 1px solid #000 !important;
+    }
+
+    .stSelectbox [data-baseweb="option"] {
+        background-color: #FFE6F2 !important;
+        color: #000 !important;
+    }
+
+    .stSelectbox [data-baseweb="option"]:hover {
+        background-color: #FFCEE6 !important;
+    }
+
+    /* Radio */
+    .stRadio > div {
+        background-color: #FFE6F2 !important;
+        border: 1px solid #000 !important;
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    /* Input fields */
+    input, textarea {
+        background-color: #FFE6F2 !important;
+        border: 1.5px solid #000 !important;
+        border-radius: 6px !important;
+        color: #000 !important;
+    }
+
+    /* Vocabulary Table → ให้พื้นหลังเป็นชมพูทั้งหมด */
+    .stDataFrame thead tr th {
+        background-color: #FFB6D9 !important;  
+        color: #000 !important;
+    }
+
+    .stDataFrame tbody tr td {
+        background-color: #FFD6EB !important;  
+        color: #000 !important;
+    }
+
+    /* Buttons */
+    button[kind="primary"],
+    button[kind="secondary"] {
+        background-color: #FF8FC7 !important;
+        color: #FFF !important;
+        border-radius: 8px !important;
+    }
+
     </style>
     """,
     unsafe_allow_html=True
 )
-
 
 # ---------------------------
 # Initialize session state
@@ -247,5 +317,3 @@ Passage:
 
     except Exception as e:
         st.error(f"Error: {e}")
-
-

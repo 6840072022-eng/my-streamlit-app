@@ -39,8 +39,7 @@ st.markdown(
         color: #FFFFFF !important; /* ตัวอักษร → ขาว */
     }
 
-    section[data-testid="stSidebar"] input,
-    section[data-testid="stSidebar"] .stSelectbox > div > div {
+    section[data-testid="stSidebar"] input {
         background-color: #FFFFFF !important; /* input → ขาว */
         border: 2px solid #000000 !important;
         border-radius: 6px !important;
@@ -51,11 +50,6 @@ st.markdown(
     section[data-testid="stSidebar"] svg {
         stroke: #FF69B4 !important;
         fill: none !important;
-        color: #FF69B4 !important;
-    }
-
-    /* Placeholder / default text ของ Gemini version selectbox → ชมพู */
-    section[data-testid="stSidebar"] div[data-baseweb="select"] div[role="combobox"] > div {
         color: #FF69B4 !important;
     }
 
@@ -174,11 +168,6 @@ st.sidebar.header("Settings")
 
 api_key = st.sidebar.text_input("Google Gemini API Key", type="password")
 
-model_name = st.sidebar.selectbox(
-    "Model",
-    ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
-)
-
 # Input Source
 st.subheader("☀️ Input Source")
 
@@ -273,7 +262,7 @@ Passage:
     st.info("Processing with Gemini…")
 
     try:
-        output = gemini_generate(api_key, model_name, prompt)
+        output = gemini_generate(api_key, "gemini-2.0-flash", prompt)
         st.success("Done!")
 
         # ======================================

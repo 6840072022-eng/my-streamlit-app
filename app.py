@@ -29,52 +29,60 @@ st.markdown(
         color: #000000 !important;
     }
 
-    /* กล่อง input ต่าง ๆ */
+    /* ====== 🔥 กล่องทั้งหมดเป็นสีชมพูอ่อน ====== */
+    /* Input, textarea */
     .stTextInput textarea,
     .stTextInput input,
     textarea,
-    input,
+    input {
+        background-color: #FFE6F2 !important;   /* ชมพูอ่อน */
+        color: #000 !important;
+    }
+
+    /* Selectbox / dropdown */
     .stSelectbox div[data-baseweb="select"],
-    .stRadio,
     .stSelectbox {
-        background-color: rgba(255, 255, 255, 0.7) !important;
-        color: #000000 !important;
+        background-color: #FFE6F2 !important;
+    }
+
+    /* Radio buttons container */
+    .stRadio > div {
+        background-color: #FFE6F2 !important;
+        padding: 8px;
+        border-radius: 8px;
     }
 
     /* DataFrame header */
     .stDataFrame thead tr th {
-        background-color: rgba(200, 230, 255, 0.8) !important;
-        color: #000000 !important;
+        background-color: #FFC7E3 !important;   /* header ชมพูเข้มขึ้นนิด */
+        color: #000 !important;
     }
 
-    /* เซลล์ใน DataFrame */
+    /* DataFrame cells */
     .stDataFrame tbody tr td {
-        background-color: rgba(255, 255, 255, 0.6) !important;
-        color: #000000 !important;
+        background-color: #FFE6F2 !important;
+        color: #000 !important;
     }
 
-    /* ปุ่ม */
-    button[kind="primary"] {
-        background-color: #2089E5 !important;
-        color: #FFFFFF !important;
-    }
+    /* Buttons */
+    button[kind="primary"],
     button[kind="secondary"] {
-        background-color: #888 !important;
+        background-color: #FF8FC7 !important;  /* ชมพูเข้ม */
         color: #FFFFFF !important;
+        border-radius: 8px !important;
     }
 
-    /* placeholder */
+    /* Placeholder */
     ::placeholder {
-        color: #555555 !important;
+        color: #444 !important;
     }
 
     /* Sidebar */
-    section[data-testid="stSidebar"] * {
-        color: #000000 !important; 
-    }
-
     section[data-testid="stSidebar"] {
-        background: rgba(255, 255, 255, 0.4) !important;
+        background-color: #FFE6F2 !important;
+    }
+    section[data-testid="stSidebar"] * {
+        color: #000 !important;
     }
 
     </style>
@@ -271,4 +279,5 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 

@@ -13,24 +13,60 @@ st.image(
     "https://i.postimg.cc/tJq9xYC3/IMG-0520.png",
     use_column_width=True
 )
-
 st.markdown(
     """
     <style>
     .stApp {
-        /* ไล่สีเข้มจากบนลงล่าง */
         background: linear-gradient(to bottom, #0F2027, #203A43, #2C5364);
         height: 100vh;
+        color: #FFFFFF !important;
     }
 
-    /* ปรับสีตัวอักษรให้อ่านง่าย */
-    .stApp .block-container {
-        color: #FFFFFF;
+    /* ปรับสีตัวอักษรหลักทั้งหมดให้เป็นสีขาว */
+    .stApp, .stApp * {
+        color: #FFFFFF !important;
+    }
+
+    /* แก้ sidebar ตัวหนังสือที่มักจะกลืน */
+    section[data-testid="stSidebar"] * {
+        color: #FFFFFF !important;
+    }
+
+    /* แก้ label ของ radio / selectbox */
+    label, .stRadio, .stSelectbox, .stSlider label {
+        color: #FFFFFF !important;
+    }
+
+    /* Input / Textbox ให้ตัวอักษรขาว */
+    input, textarea, .stTextInput input {
+        color: #FFFFFF !important;
+    }
+
+    /* Placeholder ใน textbox ก็ให้เป็นสีขาวอ่อน */
+    ::placeholder {
+        color: #DDDDDD !important;
+        opacity: 1;
+    }
+
+    /* Background ของ input ให้เข้มขึ้นหน่อย */
+    input, textarea, .stTextInput input {
+        background-color: rgba(255,255,255,0.1) !important;
+    }
+
+    /* Title, caption ให้ขาวชัด */
+    h1, h2, h3, h4, h5, h6, p, span {
+        color: #FFFFFF !important;
+    }
+
+    /* ตาราง dataframe ให้ header สีขาว */
+    .stDataFrame th {
+        color: #FFFFFF !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 # ---------------------------
 # Initialize session state
@@ -228,3 +264,4 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
 
     except Exception as e:
         st.error(f"Error: {e}")
+

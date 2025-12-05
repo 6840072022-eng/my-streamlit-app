@@ -42,7 +42,7 @@ st.markdown(
         color: #000 !important;
     }
 
-    /* รู)ตา (Eye Icon) เป็นสีฟ้า */
+    /* Eye Icon */
     input[type="password"] + div svg,
     [data-testid="stPasswordInput"] svg {
         stroke: #0099FF !important;
@@ -50,59 +50,25 @@ st.markdown(
         fill: none !important;
     }
 
-    /* Task type */
-    .stSelectbox label {
-        background: transparent !important;
-    }
-
+    /* Select */
     .stSelectbox > div > div {
         background-color: #FFE6F2 !important;
         border: 1.5px solid #000 !important;
         border-radius: 8px !important;
     }
 
-    .stSelectbox [data-baseweb="menu"] {
-        background-color: #FFE6F2 !important;
-        border: 1px solid #000 !important;
-    }
-
-    .stSelectbox [data-baseweb="option"] {
-        background-color: #FFE6F2 !important;
-        color: #000 !important;
-    }
-
-    .stSelectbox [data-baseweb="option"]:hover {
-        background-color: #FFCEE6 !important;
-    }
-
-    /* Radio */
-    .stRadio > div {
-        background-color: #FFE6F2 !important;
-        border: 1px solid #000 !important;
-        padding: 8px;
-        border-radius: 8px;
-    }
-
-    /* Input fields */
-    input, textarea {
-        background-color: #FFE6F2 !important;
-        border: 1.5px solid #000 !important;
-        border-radius: 6px !important;
-        color: #000 !important;
-    }
-
-    /* Vocabulary Table → ให้พื้นหลังเป็นชมพูทั้งหมด */
+    /* Table Header */
     .stDataFrame thead tr th {
-        background-color: #FFB6D9 !important;  /* ชมพูเข้ม */
+        background-color: #FFB6D9 !important;
         color: #000 !important;
     }
 
+    /* Table Body */
     .stDataFrame tbody tr td {
-        background-color: #FFD6EB !important;  /* ชมพูอ่อน */
+        background-color: #FFD6EB !important;
         color: #000 !important;
     }
 
-    /* Buttons */
     button[kind="primary"],
     button[kind="secondary"] {
         background-color: #FF8FC7 !important;
@@ -267,39 +233,45 @@ Passage:
         st.success("Done!")
 
         # ======================================
-        # TABLE PARSER – remove "-----" rows ✔
+        # SAFE TABLE PARSER (Markdown → DataFrame)
         # ======================================
         if "|" in output:
             try:
-                raw_lines = output.split("\n")
+                raw = output.split("\n")
 
-                lines = []
-                for line in raw_lines:
+                clean = []
+                for line in raw:
                     if "|" not in line:
                         continue
 
-                    # skip separator row like |----|----|
-                    cell_parts = [c.strip() for c in line.split("|") if c.strip()]
-                    if all(set(c) <= {"-"} for c in cell_parts):
+                    parts = [c.strip() for c in line.split("|") if c.strip()]
+                    if all(set(p) <= {"-"} for p in parts):
                         continue
 
-                    lines.append(line)
+                    clean.append(line.strip())
 
-                table_text = "\n".join(lines)
+                if len(clean) < 2:
+                    raise ValueError("Not a table")
 
+                # remove leading/trailing |
+                fixed = []
+                for row in clean:
+                    r = row
+                    if r.startswith("|"):
+                        r = r[1:]
+                    if r.endswith("|"):
+                        r = r[:-1]
+                    fixed.append(r)
+                fixed_text = "\n".join(fixed)
+
+                # parse table
                 df = pd.read_csv(
-                    io.StringIO(table_text),
-                    sep="|",
+                    io.StringIO(fixed_text.replace("|", ",")),
                     engine="python"
                 )
 
                 df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
                 df.columns = [c.strip() for c in df.columns]
-                df = df.dropna(axis=1, how="all")
-
-                # auto index fix
-                if "Index" in df.columns:
-                    df["Index"] = pd.to_numeric(df["Index"], errors="ignore")
 
                 st.dataframe(df, hide_index=True)
 

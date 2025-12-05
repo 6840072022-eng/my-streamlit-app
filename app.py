@@ -47,12 +47,11 @@ st.markdown(
         color: #000 !important;
     }
 
-    /* Eye icon (password toggle) → ชมพู */
-    input[type="password"] + div svg,
-    [data-testid="stPasswordInput"] svg {
-        stroke: #FF69B4 !important; /* hot pink */
-        color: #FF69B4 !important;
+    /* Eye icon (password toggle) ทุกตัวใน sidebar → ชมพู */
+    section[data-testid="stSidebar"] svg {
+        stroke: #FF69B4 !important;
         fill: none !important;
+        color: #FF69B4 !important;
     }
 
     /* ส่วนอื่นๆ ทุกอย่างเดิมตามโค้ดคุณ */

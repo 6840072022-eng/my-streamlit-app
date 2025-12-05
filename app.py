@@ -83,6 +83,16 @@ st.markdown(
         border-radius: 8px !important;
     }
 
+    /* ========================================= */
+    /* Text Areas → Pink Background (input/output) */
+    /* ========================================= */
+    textarea, .stTextArea textarea {
+        background-color: #FFD6EB !important;   /* ชมพูพาสเทล */
+        color: #000 !important;
+        border: 2px solid #FF8FC7 !important;
+        border-radius: 8px !important;
+    }
+
     </style>
     """,
     unsafe_allow_html=True

@@ -16,57 +16,66 @@ st.image(
 st.markdown(
     """
     <style>
+    /* พื้นหลังหลัก */
     .stApp {
         background: linear-gradient(to bottom, #0F2027, #203A43, #2C5364);
         height: 100vh;
-        color: #FFFFFF !important;
     }
 
-    /* ปรับสีตัวอักษรหลักทั้งหมดให้เป็นสีขาว */
+    /* ปรับสีตัวอักษรค่าเริ่มต้นให้เป็นสีขาว */
     .stApp, .stApp * {
         color: #FFFFFF !important;
     }
 
-    /* แก้ sidebar ตัวหนังสือที่มักจะกลืน */
-    section[data-testid="stSidebar"] * {
+    /* ปรับพื้นหลังของส่วนที่เป็น white default ให้เป็นสีเข้มแทน */
+    div[data-testid="stDataFrame"] table,
+    .stDataFrame table,
+    .stTextInput textarea,
+    .stTextInput input,
+    textarea,
+    input,
+    .stSelectbox div[data-baseweb="select"],
+    .stRadio,
+    .stSelectbox {
+        background-color: rgba(0, 0, 0, 0.35) !important;
         color: #FFFFFF !important;
     }
 
-    /* แก้ label ของ radio / selectbox */
-    label, .stRadio, .stSelectbox, .stSlider label {
+    /* DataFrame header */
+    .stDataFrame thead tr th {
+        background-color: rgba(0,0,0,0.6) !important;
         color: #FFFFFF !important;
     }
 
-    /* Input / Textbox ให้ตัวอักษรขาว */
-    input, textarea, .stTextInput input {
+    /* เซลล์ใน DataFrame */
+    .stDataFrame tbody tr td {
+        background-color: rgba(0,0,0,0.25) !important;
         color: #FFFFFF !important;
     }
 
-    /* Placeholder ใน textbox ก็ให้เป็นสีขาวอ่อน */
+    /* ปุ่ม เพื่อไม่ให้ตัวหนังสือขาวบนพื้นขาว */
+    button[kind="primary"] {
+        background-color: #1E88E5 !important;
+        color: #FFFFFF !important;
+    }
+    button[kind="secondary"] {
+        background-color: #555 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* placeholder สีเทาอ่อน */
     ::placeholder {
         color: #DDDDDD !important;
-        opacity: 1;
     }
 
-    /* Background ของ input ให้เข้มขึ้นหน่อย */
-    input, textarea, .stTextInput input {
-        background-color: rgba(255,255,255,0.1) !important;
-    }
-
-    /* Title, caption ให้ขาวชัด */
-    h1, h2, h3, h4, h5, h6, p, span {
-        color: #FFFFFF !important;
-    }
-
-    /* ตาราง dataframe ให้ header สีขาว */
-    .stDataFrame th {
+    /* Sidebar */
+    section[data-testid="stSidebar"] * {
         color: #FFFFFF !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
-
 
 # ---------------------------
 # Initialize session state
@@ -97,17 +106,15 @@ def fetch_article_text(url):
     return texts if texts.strip() else None, None
 
 # ---------------------------
-# Function: Gemini call
+# Function: Gemini call (AUTO TOKEN MODE)
 # ---------------------------
-def gemini_generate(api_key, model_name, prompt, max_tokens=1024):
+def gemini_generate(api_key, model_name, prompt):
     genai.configure(api_key=api_key)
 
     model = genai.GenerativeModel(model_name)
 
-    response = model.generate_content(
-        prompt,
-        generation_config={"max_output_tokens": max_tokens}
-    )
+    # ไม่มี generation_config → ปล่อยให้ model จัดการ tokens เอง
+    response = model.generate_content(prompt)
 
     return response.text
 
@@ -130,7 +137,7 @@ model_name = st.sidebar.selectbox(
     ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
 )
 
-max_tokens = st.sidebar.slider("Max output tokens", 128, 4096, 1024, 128)
+# (ลบ max tokens slider ออกแล้ว)
 
 # Input options
 st.subheader("☀️ Input Source")
@@ -230,38 +237,31 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
     st.info("Processing with Gemini…")
 
     try:
-        output = gemini_generate(api_key, model_name, prompt, max_tokens=max_tokens)
+        output = gemini_generate(api_key, model_name, prompt)
         st.success("Done!")
 
         if "|" in output:
             try:
-                # อ่าน DataFrame
                 df = pd.read_csv(io.StringIO(output), sep="|", header=0, skipinitialspace=True)
-
-                # ลบคอลัมน์ Unnamed
                 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
-                # สำหรับ Vocabulary extraction ให้แสดงเฉพาะ 5 คอลัมน์
                 if task == "Vocabulary extraction":
                     expected_cols = ['Index', 'Word', 'Meaning (TH)', 'Meaning (EN)', 'Example sentence']
                     cols_to_use = [c for c in expected_cols if c in df.columns]
                     df = df[cols_to_use]
 
-                    # ถ้าไม่มี Index ให้สร้างเอง
                     if 'Index' not in df.columns:
                         df.insert(0, 'Index', range(1, len(df)+1))
 
                 st.dataframe(df)
 
-                # ดาวน์โหลด CSV
                 csv_bytes = df.to_csv(index=False).encode("utf-8")
                 st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
 
-            except Exception as e:
+            except Exception:
                 st.text_area("Output", output, height=400)
         else:
             st.text_area("Output", output, height=400)
 
     except Exception as e:
         st.error(f"Error: {e}")
-

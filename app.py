@@ -10,7 +10,7 @@ import io
 # ---------------------------
 
 st.image(
-    "https://i.postimg.cc/BZw47ZhP/IMG-0521.jpg",
+    "https://i.postimg.cc/tJq9xYC3/IMG-0520.png",
     use_column_width=True
 )
 

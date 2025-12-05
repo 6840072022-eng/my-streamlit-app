@@ -54,6 +54,11 @@ st.markdown(
         color: #FF69B4 !important;
     }
 
+    /* Placeholder / default text ของ Gemini version selectbox → ชมพู */
+    section[data-testid="stSidebar"] div.css-1wa3eu0-placeholder {
+        color: #FF69B4 !important;
+    }
+
     /* ส่วนอื่นๆ ทุกอย่างเดิมตามโค้ดคุณ */
     /* Task type */
     .stSelectbox label {

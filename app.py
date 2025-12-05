@@ -33,18 +33,20 @@ st.markdown(
         border-right: 2px solid #000 !important;
     }
 
-    /* 🔥 เปลี่ยนกรอบช่อง API KEY + VERSION → ขาว */
+    /* -----------------------------------------
+       🔥 แก้ตามที่สั่ง: ช่อง API key + Model = ขาว
+       ----------------------------------------- */
     section[data-testid="stSidebar"] input,
-    section[data-testid="stSidebar"] textarea,
-    section[data-testid="stSidebar"] select,
     section[data-testid="stSidebar"] .stSelectbox > div > div {
         background-color: #FFFFFF !important;
-        border: 1.8px solid #000 !important;
+        border: 2px solid #000000 !important;
         border-radius: 6px !important;
         color: #000 !important;
     }
 
-    /* 🔥 ไอคอนรู)ตา (Eye icon) ให้เป็น “สีดำล้วน” */
+    /* -----------------------------------------
+       🔥 แก้ตามที่สั่ง: รูปตา (eye icon) → ดำ
+       ----------------------------------------- */
     input[type="password"] + div svg,
     [data-testid="stPasswordInput"] svg {
         stroke: #000 !important;
@@ -52,20 +54,29 @@ st.markdown(
         fill: none !important;
     }
 
-    /* Select menu */
+    /* Task type */
+    .stSelectbox label {
+        background: transparent !important;
+    }
+
+    .stSelectbox > div > div {
+        background-color: #FFE6F2 !important;
+        border: 1.5px solid #000 !important;
+        border-radius: 8px !important;
+    }
+
     .stSelectbox [data-baseweb="menu"] {
-        background-color: #FFFFFF !important;
+        background-color: #FFE6F2 !important;
         border: 1px solid #000 !important;
-        color: #000 !important;
     }
 
     .stSelectbox [data-baseweb="option"] {
-        background-color: #FFFFFF !important;
+        background-color: #FFE6F2 !important;
         color: #000 !important;
     }
 
     .stSelectbox [data-baseweb="option"]:hover {
-        background-color: #FFE6F2 !important;
+        background-color: #FFCEE6 !important;
     }
 
     /* Radio */
@@ -84,14 +95,14 @@ st.markdown(
         color: #000 !important;
     }
 
-    /* Vocabulary Table →ให้พื้นหลังเป็นชมพู */
+    /* Vocabulary Table → ให้พื้นหลังเป็นชมพูทั้งหมด */
     .stDataFrame thead tr th {
-        background-color: #FFB6D9 !important;
+        background-color: #FFB6D9 !important;  
         color: #000 !important;
     }
 
     .stDataFrame tbody tr td {
-        background-color: #FFD6EB !important;
+        background-color: #FFD6EB !important;  
         color: #000 !important;
     }
 
@@ -271,7 +282,6 @@ Passage:
                     if "|" not in line:
                         continue
 
-                    # skip separator row like |----|----|
                     cell_parts = [c.strip() for c in line.split("|") if c.strip()]
                     if all(set(c) <= {"-"} for c in cell_parts):
                         continue
@@ -290,7 +300,6 @@ Passage:
                 df.columns = [c.strip() for c in df.columns]
                 df = df.dropna(axis=1, how="all")
 
-                # auto index fix
                 if "Index" in df.columns:
                     df["Index"] = pd.to_numeric(df["Index"], errors="ignore")
 

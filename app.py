@@ -12,7 +12,8 @@ import io
 st.image(
     "https://i.postimg.cc/tJq9xYC3/IMG-0520.png",
     use_column_width=True
-)st.markdown(
+)
+st.markdown(
     """
     <style>
 
@@ -270,4 +271,5 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
 
     except Exception as e:
         st.error(f"Error: {e}")
+
 

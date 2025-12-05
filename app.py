@@ -290,10 +290,15 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
                     skipinitialspace=True
                 )
 
-                # ลบคอลัมน์ Unnamed และค่าว่าง
+                # ลบคอลัมน์ชื่อ Unnamed
                 df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+
+                # ลบคอลัมน์ที่ว่างจริงๆ
                 df = df.dropna(axis=1, how="all")
 
+                # -------------------------
+                # เฉพาะ Vocabulary extraction
+                # -------------------------
                 if task == "Vocabulary extraction":
 
                     required = [
@@ -304,15 +309,21 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
                         "Example sentence"
                     ]
 
-                    available = [c.strip() for c in df.columns]
-                    final_cols = [c for c in required if c in available]
+                    # strip คอลัมน์
+                    df.columns = [c.strip() for c in df.columns]
 
-                    
+                    # เลือกเฉพาะคอลัมน์ที่มีจริงและต้องการ
+                    existing = [c for c in required if c in df.columns]
+
+                    df = df[existing]
+
+                    # ถ้าไม่มี Index ให้สร้างใหม่
                     if "Index" not in df.columns:
                         df.insert(0, "Index", range(1, len(df) + 1))
 
                 st.dataframe(df, hide_index=True)
 
+                # ปุ่ม Download
                 csv_bytes = df.to_csv(index=False).encode("utf-8")
                 st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
 
@@ -324,4 +335,3 @@ Index | Word | Meaning (TH) | Meaning (EN) | Example sentence
 
     except Exception as e:
         st.error(f"Error: {e}")
-

@@ -1,4 +1,4 @@
-import streamlit as st
+เอางี้ พอละ แกแค่เพิ่มคำแปลท้ายคำสั่งภาษาอังกิดให้ชั้นก็พอ ไม่ต้องเติมลงคำที่ชั้นใส่อยู๋แล้ว และอย่าทำไรกับคำตอบ แก้แค่ตามที่บอก import streamlit as st
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -185,15 +185,12 @@ if st.button("Run Task"):
         st.error("No text detected!")
         st.stop()
 
-    # ----- Prompt (แก้เฉพาะตรงนี้ตามที่สั่ง) -----
-
+    # ----- Prompt -----
     if task == "Summarize":
         prompt = f"""
 Summarize the following article in:
 1) English (6–8 sentences)
 2) Thai (6–8 sentences)
-
-(TH translation of instruction: สรุปบทความด้านล่างเป็นภาษาอังกฤษ 6–8 ประโยค และภาษาไทย 6–8 ประโยค)
 
 Article:
 {article_text}
@@ -205,9 +202,7 @@ Extract vocabulary from the passage below.
 Return the result STRICTLY in a markdown table with this format:
 
 | Index | Word | Meaning (TH) | Meaning (EN) | Example sentence |
-|-------|-------|--------------|--------------|--------------------|
-
-(TH translation of instruction: แยกศัพท์จากบทความและแสดงในรูปแบบตารางตามฟอร์มด้านบนเท่านั้น)
+|-------|-------|--------------|----------------|--------------------|
 
 Article:
 {article_text}
@@ -218,8 +213,6 @@ Article:
 Create a 10-item Cloze Test from the passage.
 Use ___ as blanks and show answers at the end.
 
-(TH translation of instruction: สร้างโจทย์ Cloze Test จำนวน 10 ข้อ โดยใช้ ___ เป็นช่องว่าง และแสดงเฉลยด้านล่าง)
-
 {article_text}
 """
 
@@ -228,8 +221,6 @@ Use ___ as blanks and show answers at the end.
 Create 10 reading comprehension questions (A–D options).
 Include Main Idea, Inference, Tone, Vocabulary, etc.
 Show answers at the end.
-
-(TH translation of instruction: สร้างคำถาม Reading 10 ข้อ แบบตัวเลือก A–D ครอบคลุม Main Idea, Inference, Tone, Vocabulary และแสดงเฉลยตอนท้าย)
 
 Passage:
 {article_text}
@@ -262,6 +253,7 @@ Passage:
                 if len(clean) < 2:
                     raise ValueError("Not a table")
 
+                # remove leading/trailing |
                 fixed = []
                 for row in clean:
                     r = row
@@ -272,6 +264,7 @@ Passage:
                     fixed.append(r)
                 fixed_text = "\n".join(fixed)
 
+                # parse table
                 df = pd.read_csv(
                     io.StringIO(fixed_text.replace("|", ",")),
                     engine="python"

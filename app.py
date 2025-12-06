@@ -161,7 +161,7 @@ def gemini_generate(api_key, model_name, prompt):
 # ---------------------------
 st.set_page_config(layout="wide", page_title="📖 Practice Reading Skills")
 
-st.title("📖 Practice Reading Skills from a Passage 👓")
+st.title("📖 Practice English Reading Skills from a Passage 👓")
 st.caption("For learners preparing for TOEIC, IELTS, or English I&II reading tests for arts students.")
 
 st.sidebar.header("Settings")
@@ -176,7 +176,7 @@ input_mode = st.radio("Choose input type", ["URL", "Paste text"])
 article_text = ""
 
 if input_mode == "URL":
-    url = st.text_input("URL (BBC, Medium etc.)")
+    url = st.text_input("URL (บทความภาษาอังกฤษเช่น BBC, Medium etc.)")
 else:
     article_text = st.text_area("Paste your text here", height=250)
     st.session_state.article_text = article_text
@@ -197,7 +197,7 @@ task = st.selectbox(
 # Run Task
 st.subheader("⭐️ Run")
 
-if st.button("Run Task"):
+if st.button("Run Task!"):
 
     if not article_text.strip():
         article_text = st.session_state.article_text
@@ -311,3 +311,4 @@ Passage:
 
     except Exception as e:
         st.error(f"Error: {e}")
+

@@ -263,7 +263,7 @@ Passage:
 
     try:
         # ⭐⭐⭐ เปลี่ยนเฉพาะตรงนี้เท่านั้น ⭐⭐⭐
-        output = gemini_generate(api_key, "gemini-1.5-flash", prompt)
+        output = gemini_generate(api_key, "gemini-1.5-flash-8b", prompt)
         # ⭐⭐⭐--------------------------------⭐⭐⭐
 
         st.success("Done!")
@@ -314,3 +314,4 @@ Passage:
 
     except Exception as e:
         st.error(f"Error: {e}")
+

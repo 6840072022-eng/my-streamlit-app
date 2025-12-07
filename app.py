@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-import google.generativeai as genai
+# import google.generativeai as genai   # ❌ ลบออก
+from openai import OpenAI               # ✅ ใช้ OpenAI แทน
 import io
 
 # ---------------------------
@@ -148,13 +149,15 @@ def fetch_article_text(url):
     return texts if texts.strip() else None, None
 
 # ---------------------------
-# Function: Gemini generate
+# Function: OpenAI generate
 # ---------------------------
-def gemini_generate(api_key, model_name, prompt):
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(model_name)
-    response = model.generate_content(prompt)
-    return response.text
+def openai_generate(api_key, model_name, prompt):
+    client = OpenAI(api_key=api_key)
+    resp = client.chat.completions.create(
+        model=model_name,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return resp.choices[0].message.content
 
 # ---------------------------
 # Streamlit UI
@@ -166,7 +169,7 @@ st.caption("For learners preparing for TOEIC, IELTS, or English I&II reading tes
 
 st.sidebar.header("Settings")
 
-api_key = st.sidebar.text_input("Google Gemini API Key", type="password")
+api_key = st.sidebar.text_input("OpenAI API Key", type="password")
 
 # Input Source
 st.subheader("☀️ Input Source")
@@ -259,12 +262,12 @@ Passage:
 {article_text}
 """
 
-    st.info("Processing with Gemini…")
+    st.info("Processing with OpenAI…")
 
     try:
-        # ⭐⭐⭐ เปลี่ยนเฉพาะตรงนี้เท่านั้น ⭐⭐⭐
-        output = gemini_generate(api_key, "gemini-1.5-flash-8b", prompt)
-        # ⭐⭐⭐--------------------------------⭐⭐⭐
+        # ⭐⭐⭐ เปลี่ยนเฉพาะตรงนี้ ⭐⭐⭐
+        output = openai_generate(api_key, "gpt-4o-mini", prompt)
+        # ⭐⭐⭐----------------------⭐⭐⭐
 
         st.success("Done!")
 
@@ -314,4 +317,3 @@ Passage:
 
     except Exception as e:
         st.error(f"Error: {e}")
-

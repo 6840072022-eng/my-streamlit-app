@@ -6,11 +6,6 @@ import google.generativeai as genai
 import io
 
 # ---------------------------
-# MUST BE BEFORE UI (แก้เฉพาะตรงนี้)
-# ---------------------------
-st.set_page_config(layout="wide", page_title="📖 Practice Reading Skills")
-
-# ---------------------------
 # Background Image / Gradient
 # ---------------------------
 
@@ -51,13 +46,14 @@ st.markdown(
         color: #000 !important;
     }
 
-    /* Eye icon (password toggle) ทุกตัวในsidebar → ชมพู */
+    /* Eye icon (password toggle) ทุกตัวใน sidebar → ชมพู */
     section[data-testid="stSidebar"] svg {
         stroke: #FF69B4 !important;
         fill: none !important;
         color: #FF69B4 !important;
     }
 
+    /* ส่วนอื่นๆ ทุกอย่างเดิมตามโค้ดคุณ */
     /* Task type */
     .stSelectbox label {
         background: transparent !important;
@@ -99,7 +95,7 @@ st.markdown(
         color: #000 !important;
     }
 
-    /* Vocabulary Table */
+    /* Vocabulary Table → ให้พื้นหลังเป็นชมพูทั้งหมด */
     .stDataFrame thead tr th {
         background-color: #FFB6D9 !important;  
         color: #000 !important;
@@ -163,6 +159,7 @@ def gemini_generate(api_key, model_name, prompt):
 # ---------------------------
 # Streamlit UI
 # ---------------------------
+st.set_page_config(layout="wide", page_title="📖 Practice Reading Skills")
 
 st.title("📖 Practice English Reading Skills from a Passage 👓")
 st.caption("For learners preparing for TOEIC, IELTS, or English I&II reading tests for arts students.")
@@ -296,7 +293,7 @@ Passage:
 
                 df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
                 df.columns = [c.strip() for c in df.columns]
-                df = df.dropna(axis=1, how="all"])
+                df = df.dropna(axis=1, how="all")
 
                 if "Index" in df.columns:
                     df["Index"] = pd.to_numeric(df["Index"], errors="ignore")
@@ -314,3 +311,4 @@ Passage:
 
     except Exception as e:
         st.error(f"Error: {e}")
+

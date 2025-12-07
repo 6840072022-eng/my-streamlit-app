@@ -148,11 +148,16 @@ def fetch_article_text(url):
     return texts if texts.strip() else None, None
 
 # ---------------------------
-# Function: Gemini generate
+# Function: Gemini generate (แก้เฉพาะส่วนนี้)
 # ---------------------------
-def gemini_generate(api_key, model_name, prompt):
+
+@st.cache_resource
+def load_gemini_model(api_key, model_name):
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(model_name)
+    return genai.GenerativeModel(model_name)
+
+def gemini_generate(api_key, model_name, prompt):
+    model = load_gemini_model(api_key, model_name)
     response = model.generate_content(prompt)
     return response.text
 
@@ -262,7 +267,7 @@ Passage:
     st.info("Processing with Gemini…")
 
     try:
-        output = gemini_generate(api_key, "gemini-1.5-pro", prompt)
+        output = gemini_generate(api_key, "gemini-2.0-flash", prompt)
         st.success("Done!")
 
         # ======================================

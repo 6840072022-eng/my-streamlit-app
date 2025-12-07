@@ -6,6 +6,11 @@ import google.generativeai as genai
 import io
 
 # ---------------------------
+# MUST BE BEFORE UI (แก้เฉพาะตรงนี้)
+# ---------------------------
+st.set_page_config(layout="wide", page_title="📖 Practice Reading Skills")
+
+# ---------------------------
 # Background Image / Gradient
 # ---------------------------
 
@@ -16,7 +21,103 @@ st.image(
 st.markdown(
     """
     <style>
-    ... (CSS ของคุณทั้งหมด ไม่มีแก้)
+
+    /* พื้นหลังหลัก: ขาว → ฟ้าอ่อน (เดิม) */
+    .stApp {
+        background: linear-gradient(to bottom, #FFFFFF, #DDF3FF);
+        color: #000 !important;
+    }
+
+    .stApp, .stApp * {
+        color: #000 !important;
+    }
+
+    /* ---------------------------
+       🔥 แก้เฉพาะ sidebar
+       --------------------------- */
+    section[data-testid="stSidebar"] {
+        background-color: #000000 !important; /* sidebar → ดำ */
+    }
+
+    section[data-testid="stSidebar"],
+    section[data-testid="stSidebar"] * {
+        color: #FFFFFF !important; /* ตัวอักษร → ขาว */
+    }
+
+    section[data-testid="stSidebar"] input {
+        background-color: #FFFFFF !important; /* input → ขาว */
+        border: 2px solid #000000 !important;
+        border-radius: 6px !important;
+        color: #000 !important;
+    }
+
+    /* Eye icon (password toggle) ทุกตัวในsidebar → ชมพู */
+    section[data-testid="stSidebar"] svg {
+        stroke: #FF69B4 !important;
+        fill: none !important;
+        color: #FF69B4 !important;
+    }
+
+    /* Task type */
+    .stSelectbox label {
+        background: transparent !important;
+    }
+
+    .stSelectbox > div > div {
+        background-color: #FFE6F2 !important;
+        border: 1.5px solid #000 !important;
+        border-radius: 8px !important;
+    }
+
+    .stSelectbox [data-baseweb="menu"] {
+        background-color: #FFE6F2 !important;
+        border: 1px solid #000 !important;
+    }
+
+    .stSelectbox [data-baseweb="option"] {
+        background-color: #FFE6F2 !important;
+        color: #000 !important;
+    }
+
+    .stSelectbox [data-baseweb="option"]:hover {
+        background-color: #FFCEE6 !important;
+    }
+
+    /* Radio */
+    .stRadio > div {
+        background-color: #FFE6F2 !important;
+        border: 1px solid #000 !important;
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    /* Input fields */
+    input, textarea {
+        background-color: #FFE6F2 !important;
+        border: 1.5px solid #000 !important;
+        border-radius: 6px !important;
+        color: #000 !important;
+    }
+
+    /* Vocabulary Table */
+    .stDataFrame thead tr th {
+        background-color: #FFB6D9 !important;  
+        color: #000 !important;
+    }
+
+    .stDataFrame tbody tr td {
+        background-color: #FFD6EB !important;  
+        color: #000 !important;
+    }
+
+    /* Buttons */
+    button[kind="primary"],
+    button[kind="secondary"] {
+        background-color: #FF8FC7 !important;
+        color: #FFF !important;
+        border-radius: 8px !important;
+    }
+
     </style>
     """,
     unsafe_allow_html=True
@@ -62,7 +163,6 @@ def gemini_generate(api_key, model_name, prompt):
 # ---------------------------
 # Streamlit UI
 # ---------------------------
-st.set_page_config(layout="wide", page_title="📖 Practice Reading Skills")
 
 st.title("📖 Practice English Reading Skills from a Passage 👓")
 st.caption("For learners preparing for TOEIC, IELTS, or English I&II reading tests for arts students.")
@@ -164,54 +264,53 @@ Passage:
 
     st.info("Processing with Gemini…")
 
-    # ---------------------------------------------
-    # ⭐⭐⭐ INSERTED HERE: Auto Fallback Model ⭐⭐⭐
     try:
         output = gemini_generate(api_key, "gemini-2.0-flash", prompt)
-    except Exception:
-        output = gemini_generate(api_key, "gemini-1.5-flash", prompt)
+        st.success("Done!")
 
-    st.success("Done!")
-    # ---------------------------------------------
+        # ======================================
+        # TABLE PARSER – remove "-----" rows ✔
+        # ======================================
+        if "|" in output:
+            try:
+                raw_lines = output.split("\n")
 
-    # TABLE PARSER (เหมือนเดิม 100%)
-    if "|" in output:
-        try:
-            raw_lines = output.split("\n")
+                lines = []
+                for line in raw_lines:
+                    if "|" not in line:
+                        continue
 
-            lines = []
-            for line in raw_lines:
-                if "|" not in line:
-                    continue
+                    cell_parts = [c.strip() for c in line.split("|") if c.strip()]
+                    if all(set(c) <= {"-"} for c in cell_parts):
+                        continue
 
-                cell_parts = [c.strip() for c in line.split("|") if c.strip()]
-                if all(set(c) <= {"-"} for c in cell_parts):
-                    continue
+                    lines.append(line)
 
-                lines.append(line)
+                table_text = "\n".join(lines)
 
-            table_text = "\n".join(lines)
+                df = pd.read_csv(
+                    io.StringIO(table_text),
+                    sep="|",
+                    engine="python"
+                )
 
-            df = pd.read_csv(
-                io.StringIO(table_text),
-                sep="|",
-                engine="python"
-            )
+                df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+                df.columns = [c.strip() for c in df.columns]
+                df = df.dropna(axis=1, how="all"])
 
-            df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
-            df.columns = [c.strip() for c in df.columns]
-            df = df.dropna(axis=1, how="all")
+                if "Index" in df.columns:
+                    df["Index"] = pd.to_numeric(df["Index"], errors="ignore")
 
-            if "Index" in df.columns:
-                df["Index"] = pd.to_numeric(df["Index"], errors="ignore")
+                st.dataframe(df, hide_index=True)
 
-            st.dataframe(df, hide_index=True)
+                csv_bytes = df.to_csv(index=False).encode("utf-8")
+                st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
 
-            csv_bytes = df.to_csv(index=False).encode("utf-8")
-            st.download_button("Download CSV", csv_bytes, "result.csv", "text/csv")
+            except Exception:
+                st.text_area("Output", output, height=420)
 
-        except Exception:
+        else:
             st.text_area("Output", output, height=420)
 
-    else:
-        st.text_area("Output", output, height=420)
+    except Exception as e:
+        st.error(f"Error: {e}")

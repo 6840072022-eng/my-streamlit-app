@@ -1,6 +1,13 @@
 import streamlit as st
 import pandas as pd
 
+hsk5 = pd.read_csv("https://raw.githubusercontent.com/plaktos/hsk_csv/master/hsk5.csv")
+
+hsk6 = pd.read_csv("https://chill-chinese.com/hsk-6-vocabulary-list.csv")
+
+st.write("HSK5 columns:", hsk5.columns.tolist())
+
+st.write("HSK6 columns:", hsk6.columns.tolist())
 # -----------------------------
 # URL ของแต่ละระดับ
 # -----------------------------
